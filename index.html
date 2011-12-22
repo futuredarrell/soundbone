@@ -13,16 +13,19 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <script type="text/javascript" src="js/underscore-1.2.3/underscore.js"></script>
+  <script type="text/javascript" src="js/zepto-0.8/zepto.js"></script>
+  <script type="text/javascript" src="js/backbone-0.5.3/backbone.js"></script>
+  <script type="text/javascript" src="js/testcloud.js"></script>
   <script src="http://connect.soundcloud.com/sdk.js" type="text/JavaScript"></script>
   <script type="text/JavaScript">
     SC.initialize({
       client_id: "ee8e164717cb8a3495919a9ee68e91fc"
       //, redirect_uri: "http://example.com/callback.html",
     });
+    SC.whenStreamingReady(function(){
+      TestCloud.init();
+    });
   </script>
-  <script type="text/javascript" src="js/underscore-1.2.3/underscore.js"></script>
-  <script type="text/javascript" src="js/zepto-0.8/zepto.js"></script>
-  <script type="text/javascript" src="js/backbone-0.5.3/backbone.js"></script>
-  <script type="text/javascript" src="js/testcloud.js"></script>
 </body>
 </html>

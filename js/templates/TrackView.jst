@@ -1,0 +1,17 @@
+<% if(this.model.attributes.selected) { %>
+	<div class="selected">
+<% } else { %>
+	<div>
+<% } %>
+	<%
+	var stream = this.model.attributes.stream || {};
+	var playState = stream.playState;
+	if(stream.paused){ %>
+		<span class="paused">||</span>
+	<% } else if(playState == 1) { %>
+		<span class="playing">></span>
+	<% } else { %>
+		<span class=""></span>
+	<% } %>
+	<p class="track"><%= title.slice(0,20).concat("...") %> by <%= user.username %></p>
+</div>

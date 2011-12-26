@@ -1,0 +1,4 @@
+<p id="track-<%= id %>">
+	<span class="track-icon">&nbsp;</span>
+	<%= title %>
+</p>

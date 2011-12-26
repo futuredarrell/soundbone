@@ -5,5 +5,49 @@ table { border-collapse: collapse; border-spacing: 0; }
 ol, ul { list-style: none; }
 q:before, q:after, blockquote:before, blockquote:after { content: ""; }
 
+body {
+	font-family: 'Lucida Sans', sans-serif;
+	font-size: 14px;
+}
 
+@SCblue: #edf3fe;
+@SCdarkblue: #3875d7;
+@SCorange: #ff7626;
+
+
+.track{background: #fff; padding: 4px; color: #000;}
+.selected .track{
+	background: @SCdarkblue;
+	color: #fff;
+}
+.paused{
+	background: #000;
+	color: #fff;
+	display: block;
+	width: 10px;
+	height: 10px;
+	padding: 2px;
+	font-size: 9px;
+	float: left;
+	text-align: center;
+	margin-right: 5px;
+}
+.playing{
+	background: #f00;
+}
+#scrubber{
+	height: 50px;
+	display: block;
+	background: #565656;
+	position: relative;
+}
+#scrubber-knob{
+	height:50px;
+	width: 100%;
+	display: block;
+	position: absolute;
+	top:0;
+	background: #ff2a00;
+	opacity: 0.5;
+}
 

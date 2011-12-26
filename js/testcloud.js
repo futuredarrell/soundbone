@@ -12,7 +12,7 @@
             this.controls = new Controls({collection: tracks});
             this.scrubber = new Scrubber({collection: tracks});
             
-            var list = ['4456728','5968824','291'];
+            var list = ['5968824','4456728','291'];
 
             _.each(list, function(value, index){
                 tracks.add(new Track({'id': value}));
@@ -53,14 +53,13 @@
         },
         load: function(){
             var self = this;
-            console.log(self);
             if(this.stream && this.stream.playState === 1){
                 return this.stream;
             } else {
                 return this.stream = SC.stream(this.id, {
                     onplay: function(){
                       self.trigger('play');
-                      self.timer = setInterval(_.bind(self.updateTime, self), 250);  
+                      self.timer = setInterval(_.bind(self.updateTime, self), 500);  
                     },
                     onfinish: function(){
                         self.collection.select('next');
@@ -75,15 +74,13 @@
                     },
                     onresume: function(){
                         self.trigger('resume');
-                        self.timer = setInterval(_.bind(self.updateTime, self), 250);
+                        self.timer = setInterval(_.bind(self.updateTime, self), 500);
                     }
                 });   
             }
         },
         updateTime: function(){
-            //console.log(this)
             this.trigger('time');
-            //console.log('sound pos:', this.stream.position / this.attributes.duration);
         },
         destruct: function(){
             this.stream.destruct();
@@ -100,9 +97,7 @@
             this.currentTrack().play();
         },
         select: function(obj){
-            var stream = this.currentTrack().stream;
             var newIndex = 0;
-            //this.currentTrack().destruct();
             switch(obj){
                 case 'previous':
                     newIndex = (this.index > 0) ? this.index - 1 : 0;
@@ -112,14 +107,13 @@
                 break;
                 default:
                     if(typeof obj == 'number' && (obj >= 0 && obj < this.length)) newIndex = obj;
+                    console.log('track select', obj);
             };
             if(this.index !== newIndex){
+                this.currentTrack().destruct();
                 this.index = newIndex;
                 this.currentTrack().play();
             }
-        },
-        mark: function(){
-            
         },
         currentTrack: function(){
             //return a track model obj
@@ -179,25 +173,43 @@
            var self = this;
             this.collection.bind('play', function(){
                 self.render(); 
+                self.setScrubber(self.collection.currentTrack().stream);
+            });
+            this.collection.bind('pause', function(){
+                self.pauseScrubber(self.collection.currentTrack().stream);
+            });
+            this.collection.bind('resume', function(){
+                self.setScrubber(self.collection.currentTrack().stream);
             });
             this.collection.bind('time', function(){
-                self.changeScrubber(self.collection.currentTrack().stream);
+                //self.changeScrubber(self.collection.currentTrack().stream);
             });
             this.collection.bind('finish', function(){
                 console.log('track finish from scrubber');
             });
         },
-        changeScrubber: function(stream){
+        setScrubber: function(stream){
+            var duration = this.collection.currentTrack().attributes.duration;
+            var position = stream.position || 0;
+            setTimeout(function(){
+                $('#scrubber-knob').css({
+                '-webkit-transform': 'translate3d(100%, 0px, 0)'
+                ,'-webkit-transition-duration': (duration - position) / 1000 + 's'});
+           }, 1);
+
+        },
+        pauseScrubber: function(stream){
             var duration = this.collection.currentTrack().attributes.duration;
             var position = stream.position;
-            var width = window.innerWidth;
-            $('#scrubber-knob').css({'right': width - (position/duration * width)});
+            $('#scrubber-knob').css({
+                '-webkit-transform': 'translate3d(' + (position/duration) * 100 + '%, 0px, 0)',
+                '-webkit-transition-duration': '0s'});
         },
         collection: Tracks,
         el: '#scrubber',
         render: function(){
             var track = this.collection.currentTrack();
-            console.log(track);
+            console.log('scrubber render: ', track);
             $(this.el).html(this.template(track.toJSON()));
         },
         template: Templates.Scrubber
@@ -216,6 +228,7 @@
         template: Templates.TrackView,
         render: function(){
             //changes details of track, play icon
+            console.log('track render');
             console.log('render', this.model.toJSON());
             $('#track-' + this.model.id).html(this.template(this.model.toJSON()));
             return this;   

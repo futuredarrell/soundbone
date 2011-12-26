@@ -12,7 +12,7 @@ body {
 
 @SCblue: #edf3fe;
 @SCdarkblue: #3875d7;
-@SCorange: #ff7626;
+@SCorange: #ff5125;
 
 
 .track{background: #fff; padding: 4px; color: #000;}
@@ -47,7 +47,17 @@ body {
 	display: block;
 	position: absolute;
 	top:0;
-	background: #ff2a00;
 	opacity: 0.5;
+	-webkit-transition-timing-function: linear;
+}
+#scrubber-control{
+	width: 100%;
+	height: 50px;
+	border-right: 2px solid @SCorange;
+	display: block;
+	position: relative;
+	top: 0;
+	left: -100%;
+	background: #ff2a00;
 }
 

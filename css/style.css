@@ -79,11 +79,15 @@ body {
 }
 .track {
   background: #fff;
-  padding: 4px;
+  padding: 12px 4px;
   color: #000;
+  position: relative;
 }
-.selected .track {
-  background: #3875d7;
+.track:nth-child(even) {
+  background: #edf3fe;
+}
+.selected {
+  background: #3875d7 !important;
   color: #fff;
 }
 .paused {

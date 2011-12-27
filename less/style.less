@@ -14,10 +14,17 @@ body {
 @SCdarkblue: #3875d7;
 @SCorange: #ff5125;
 
+.track{background: #fff; padding: 12px 4px; color: #000; position: relative;}
+.track:nth-child(even){
+	background: @SCblue;
+}
+.track-title{
 
-.track{background: #fff; padding: 4px; color: #000;}
-.selected .track{
-	background: @SCdarkblue;
+}
+.track-username{
+}
+.selected{
+	background: @SCdarkblue !important;
 	color: #fff;
 }
 .paused{

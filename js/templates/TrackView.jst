@@ -1,8 +1,4 @@
-<% if(this.model.attributes.selected) { %>
-	<div class="selected">
-<% } else { %>
-	<div>
-<% } %>
+<div>
 	<%
 	var stream = this.model.attributes.stream || {};
 	var playState = stream.playState;
@@ -13,5 +9,5 @@
 	<% } else { %>
 		<span class=""></span>
 	<% } %>
-	<p class="track"><%= title.slice(0,20).concat("...") %> by <%= user.username %></p>
+	<span class="track-title"><%= title %></span><span class="track-username">... by <%= user.username %></span></p>
 </div>

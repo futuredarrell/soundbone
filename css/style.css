@@ -77,16 +77,69 @@ body {
   font-family: 'Lucida Sans', sans-serif;
   font-size: 14px;
 }
+.clearfix:after {
+  content: ".";
+  display: block;
+  clear: both;
+  visibility: hidden;
+  line-height: 0;
+  height: 0;
+}
+.clearfix {
+  display: inline-block;
+}
+html[xmlns] .clearfix {
+  display: block;
+}
+* html .clearfix {
+  height: 1%;
+}
+.app-wrapper {
+  height: 480px;
+  width: 320px;
+  position: relative;
+}
+#container {
+  display: block;
+  width: 320px;
+}
+.screen {
+  display: block;
+  float: left;
+  width: 320px;
+  height: 480px;
+  background: #eee;
+}
+.screen:after {
+  content: ".";
+  display: block;
+  clear: both;
+  visibility: hidden;
+  line-height: 0;
+  height: 0;
+}
+.slide-left {
+  -webkit-transform: translate3d(-320px, 0, 0);
+  -webkit-transition: all 0.5s ease-out;
+}
 .track {
   background: #fff;
-  padding: 12px 4px;
+  padding: 12px 10px;
   color: #000;
   position: relative;
 }
 .track:nth-child(even) {
   background: #edf3fe;
 }
-.selected {
+.track-title {
+  font-size: 14px;
+  padding-bottom: 5px;
+}
+.track-username {
+  font-size: 13px;
+  color: #666;
+}
+.selected, .selected .track-title, .selected .track-username {
   background: #3875d7 !important;
   color: #fff;
 }
@@ -129,4 +182,22 @@ body {
   top: 0;
   left: -100%;
   background: #ff2a00;
+}
+/* Controls */
+#controls {
+  position: absolute;
+  top: 430px;
+  display: block;
+  width: 320px;
+  height: 50px;
+  float: left;
+  left: 0;
+}
+.control {
+  background: #eee;
+  color: #000;
+  display: block;
+  float: left;
+  width: 25%;
+  height: 50px;
 }

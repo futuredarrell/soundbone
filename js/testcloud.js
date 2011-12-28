@@ -1,25 +1,39 @@
 // TestCloud
+// When ready...
 (function(){
 
-    var TestCloud, Tracks, Track, Controls, TrackView, Scrubber;
+    var TestCloud, Tracks, Track, Controls, TrackView, Scrubber, App;
 
     var activate = ('createTouch' in document) ? 'touchstart' : 'click';
 
     var hasTouch = ('createTouch' in document) ? true : false;
 
-    console.log(activate);
-
     window.TestCloud = TestCloud = {};
 
-    var App = Backbone.View.extend({
+    var Screen = Backbone.View.extend({
+        createModule: function(name){
+          var module = document.createElement('div');
+          module.id = name;
+          this.screen.appendChild(module);
+        },
+        createScreen: function(){
+            var screen = document.createElement('div');
+            screen.className = 'screen';
+            $('#container').append(screen);
+            this.screen = screen;
+            return screen;
+        },
         initialize: function(){
+            this.createScreen();
+            this.render();
+        }
+    });
 
-            var tracks = this.tracks = new Tracks();
-            this.controls = new Controls({collection: tracks});
-            this.scrubber = new Scrubber({collection: tracks});
-            
+    var Home = Screen.extend({
+        render: function(){
+            this.createModule('tracks');
             var list = [5968824, 4456728, 291];
-
+            var tracks = new Tracks();
             _.each(list, function(value, index){
                 tracks.add(new Track({'id': value}));
                 if(index == 0){
@@ -27,7 +41,30 @@
                     // tracks.select(list[0]);
                 };
             });
-        }, 
+        }
+    });
+
+    var TrackDetail = Screen.extend({
+        render: function(){
+            this.createModule('scrubber');
+            console.log(this.model);
+            this.model.play();
+            this.scrubber = new Scrubber({model:this.model});
+        },
+        model: Track
+    })
+
+    App = Backbone.View.extend({
+        initialize: function(){
+            var home = new Home();
+            this.currentScreen = home;
+        },
+        transitionTo: function(newScreen){
+            console.log(newScreen, this.currentScreen);
+            $('#container').css({'width' : '800px'});
+            $('#container .screen').addClass('slide-left');
+            this.currentScreen = newScreen;
+        }
     });
 
     Track = Backbone.Model.extend({
@@ -92,9 +129,9 @@
                 });   
             }
         },
-        updateTime: function(){
+        /*updateTime: function(){
             this.trigger('time');
-        },
+        },*/
         destruct: function(){
             //if(self.timer) clearInterval(self.timer);
             if(this.stream) {
@@ -172,52 +209,32 @@
         el: '#controls',
         collection: Tracks,
         initialize: function(){
-            var self = this;
-            console.log(this);
-            //this.collection.bind('pause', this.showPlay);
-            this.collection.bind('play', function(){
-                console.log('track play from controls');
-            });
-            this.collection.bind('pause', function(){
-                console.log('track pause from controls');
-            });
-            this.collection.bind('resume', function(){
-                console.log('track resume from controls');
-            });
-            this.collection.bind('finish', function(){
-                console.log('track resume from controls');
-            });
             this.render();
         }
     });
 
     Scrubber = Backbone.View.extend({
-        initialize: function(){
+        initialize: function(){            
             var self = this;
-            this.collection.bind('play', function(){
+            this.model.bind('play', function(){
                 self.render(); 
-                self.setScrubber(self.collection.currentTrack.stream);
+                self.setScrubber(self.model.stream);
             });
-            this.collection.bind('pause', function(){
-                self.pauseScrubber(self.collection.currentTrack.stream);
+            this.model.bind('pause', function(){
+                self.pauseScrubber(self.model.stream);
             });
-            this.collection.bind('resume', function(){
-                self.setScrubber(self.collection.currentTrack.stream);
+            this.model.bind('resume', function(){
+                self.setScrubber(self.model.stream);
             });
-            this.collection.bind('finish', function(){
+            this.model.bind('finish', function(){
                 console.log('track finish from scrubber');
             });
-            this.collection.bind('time', function(){
-                console.log('time update');
-                self.pauseScrubber(self.collection.currentTrack.stream);
-                self.setScrubber(self.collection.currentTrack.stream);
-            })
         },
         setScrubber: function(stream){
             console.log('set scrubber!');
-            var duration = this.collection.currentTrack.attributes.duration;
+            var duration = this.model.attributes.duration;
             var position = stream.position || 0;
-            console.log(stream.bytesLoaded, stream.bytesTotal, stream.bytesTotal / stream.bytesLoaded)
+            //console.log(stream.bytesLoaded, stream.bytesTotal, stream.bytesTotal / stream.bytesLoaded)
             setTimeout(function(){
                 $('#scrubber-knob').css({
                 '-webkit-transform': 'translate3d(100%, 0px, 0)',
@@ -226,22 +243,22 @@
 
         },
         pauseScrubber: function(stream){
-            var duration = this.collection.currentTrack.attributes.duration;
+            var duration = this.model.attributes.duration;
             var position = stream.position;
             $('#scrubber-knob').css({
                 '-webkit-transform': 'translate3d(' + (position/duration) * 100 + '%, 0px, 0)',
                 '-webkit-transition-duration': '0s'});
         },
-        collection: Tracks,
+        model: Track,
         el: '#scrubber',
         render: function(){
             var self = this;
-            var track = this.collection.currentTrack;
+            var track = this.model;
             console.log('scrubber render: ', track, this);
             $(this.el).html(self.template(track.toJSON()));
             $('#scrubber-control').bind(activate, function(e){
                e.preventDefault();
-               self.pauseScrubber(self.collection.currentTrack.stream);
+               self.pauseScrubber(self.model.stream);
             });
             $('#scrubber-control').bind('touchmove', function(e){
                e.preventDefault();
@@ -252,7 +269,6 @@
             $('#scrubber-control').bind('touchend', function(e){
                 // touchend has changedtouches on iphone
                 // on android it may be different and we'll have to use touches like normal
-
                 e.preventDefault();
                 $('#scrubber-knob').css({
                    '-webkit-transform': 'translate3d(' + e.changedTouches[0].screenX + 'px,0,0)'
@@ -260,12 +276,12 @@
 
                 var pos = e.changedTouches[0].screenX;
                 var width = window.innerWidth;
-                var duration = self.collection.currentTrack.attributes.duration;
+                var duration = self.model.attributes.duration;
                 
                 //position * duration / width
                 var newPos = Math.round((pos * duration) / width);
-                self.collection.currentTrack.stream.setPosition(newPos);
-                self.setScrubber(self.collection.currentTrack.stream);
+                self.model.stream.setPosition(newPos);
+                self.setScrubber(self.model.stream);
             });
         },
         template: Templates.Scrubber
@@ -296,8 +312,10 @@
             }
                         
             el.bind((hasTouch) ? 'touchstart' : 'click', function(){
-               console.log('something?');
-               self.model.collection.select(self.model.id);
+               //console.log('something?');
+               var trackDetail = new TrackDetail({model: self.model});
+               App.transitionTo(trackDetail);
+               //self.model.collection.select(self.model.id);
             });
             
             return this;   
@@ -307,7 +325,8 @@
 
     TestCloud.init = function(){
         console.log('init');
-        var app = new App();
+        window.App = App = new App();
+        
     };
 })();
 

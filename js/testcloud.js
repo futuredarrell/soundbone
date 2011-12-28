@@ -1,7 +1,7 @@
 // TestCloud
 (function(){
 
-    var TestCloud, Tracks, Track, Controls, TracksView, TrackView, Scrubber;
+    var TestCloud, Tracks, Track, Controls, TrackView, Scrubber;
 
     var activate = ('createTouch' in document) ? 'touchstart' : 'click';
 
@@ -67,23 +67,27 @@
             } else {
                 return this.stream = SC.stream(this.id, {
                     onplay: function(){
-                      self.trigger('play');
-                      self.timer = setInterval(_.bind(self.updateTime, self), 1000);  
+                        //self.trigger('play');
+                        //self.timer = setInterval(_.bind(self.updateTime, self), 1000); 
+                        this.onposition(10, function(){
+                            console.log('stream reached 10');
+                            self.trigger('play');
+                        }); 
                     },
                     onfinish: function(){
                         self.collection.select('next');
                         self.trigger('finish');
-                        clearInterval(self.timer);
+                        //clearInterval(self.timer);
                         self.destruct();
                         console.log('destroying track');
                     },
                     onpause: function(){
                         self.trigger('pause');
-                        clearInterval(self.timer);
+                        //clearInterval(self.timer);
                     },
                     onresume: function(){
                         self.trigger('resume');
-                        self.timer = setInterval(_.bind(self.updateTime, self), 1000);
+                        //self.timer = setInterval(_.bind(self.updateTime, self), 1000);
                     }
                 });   
             }
@@ -92,6 +96,7 @@
             this.trigger('time');
         },
         destruct: function(){
+            //if(self.timer) clearInterval(self.timer);
             if(this.stream) {
                 this.stream.destruct();
             } else {
@@ -209,8 +214,10 @@
             })
         },
         setScrubber: function(stream){
+            console.log('set scrubber!');
             var duration = this.collection.currentTrack.attributes.duration;
             var position = stream.position || 0;
+            console.log(stream.bytesLoaded, stream.bytesTotal, stream.bytesTotal / stream.bytesLoaded)
             setTimeout(function(){
                 $('#scrubber-knob').css({
                 '-webkit-transform': 'translate3d(100%, 0px, 0)',
@@ -256,7 +263,7 @@
                 var duration = self.collection.currentTrack.attributes.duration;
                 
                 //position * duration / width
-                var newPos = Math.floor((pos * duration) / width);
+                var newPos = Math.round((pos * duration) / width);
                 self.collection.currentTrack.stream.setPosition(newPos);
                 self.setScrubber(self.collection.currentTrack.stream);
             });

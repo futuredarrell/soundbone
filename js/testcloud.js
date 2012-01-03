@@ -1,70 +1,168 @@
 // TestCloud
 // When ready...
-(function(){
+(function () {
 
-    var TestCloud, Tracks, Track, Controls, TrackView, Scrubber, App;
-
-    var activate = ('createTouch' in document) ? 'touchstart' : 'click';
-
-    var hasTouch = ('createTouch' in document) ? true : false;
+    var TestCloud, Tracks, Track, Controls, TrackView, Scrubber, App, app, Router, Screen,
+        activate = ('createTouch' in document) ? 'touchstart' : 'click',
+        hasTouch = ('createTouch' in document) ? true : false;
 
     window.TestCloud = TestCloud = {};
 
-    var Screen = Backbone.View.extend({
-        createModule: function(name){
-          var module = document.createElement('div');
-          module.id = name;
-          this.screen.appendChild(module);
-        },
-        createScreen: function(){
-            var screen = document.createElement('div');
-            screen.className = 'screen';
-            $('#container').append(screen);
-            this.screen = screen;
-            return screen;
-        },
+    App = Backbone.View.extend({
         initialize: function(){
-            this.createScreen();
-            this.render();
-        }
-    });
 
-    var Home = Screen.extend({
-        render: function(){
-            this.createModule('tracks');
-            var list = [5968824, 4456728, 291];
-            var tracks = new Tracks();
-            _.each(list, function(value, index){
-                tracks.add(new Track({'id': value}));
+            var self = this;
+
+            self.screens = [];
+            self.createScreen();
+
+            self.currentView = null;
+
+            // fake activity stream
+            //self.stream = [5968824];
+            self.stream = [5968824, 4456728, 291];
+            //self.stream = [5968824, 4456728, 291, 31359980, 28377811, 25715240, 28925819, 28768833];
+            self.tracks = new Tracks();
+
+            self.settings = {
+                autoplay: true
+            };
+
+            // load tracks at this point
+            _.each(self.stream, function(value, index){
+                self.tracks.add(new Track({'id': value}));
+                console.log('adding!', value);
                 if(index == 0){
                     // autoplay
                     // tracks.select(list[0]);
                 };
             });
+
+        },
+        transitionTo: function(view){
+            console.log('transition to', view);
+            var width = $(window).width();
+            var self = this;
+
+            if(!self.currentView){
+                console.log('no current view');
+                self.currentView = view;
+                view.render();
+                $(view.el).appendTo(self.currentScreen());
+                return false;
+            } else {
+                view.render();
+                $(self.currentScreen()).css({
+                    width: width,
+                    float: 'left',
+                    display: 'block'
+                });
+
+                $(self.createScreen()).css({
+                    width: width,
+                    float: 'left',
+                    display: 'block',
+                    position: 'absolute',
+                    top: 0,
+                    // this could be a negative or positive
+                    // depending on the transition
+                    left: width 
+                }).append(view.el);
+                $('#container').css({
+                    width: width * 2,
+                    '-webkit-transform' : 'translate3d(' + -1 * width + 'px,0,0)',
+                    '-webkit-transition' : '-webkit-transform .5s ease-out',
+                    'overflow': 'hidden'
+                });
+                $('#container').bind('webkitTransitionEnd', function(e){
+                    console.log('webkit end of transition');
+                    console.log(e.srcElement == this);
+                    if(e.srcElement === $('#container')[0]){
+                        console.log('container switch');
+                        var container = $('#container')[0];
+                        var remove = container.childNodes[0];
+                        container.removeChild(remove);
+                        $('#container').attr('style', '');
+                        $('.screen').attr('style', '');
+                        $('#container').unbind('webkitTransitionEnd');
+                        //$('#container').removeAttr('style');
+                        self.screens = self.screens.slice(0,1);
+                    }
+                });   
+            }
+        },
+        createScreen: function(){
+            var screen = $('<div class="screen">').appendTo('#container')[0];
+            this.screens.push(screen);
+            return screen;
+        },
+        currentScreen: function(){
+            return this.screens[0];
         }
     });
 
-    var TrackDetail = Screen.extend({
+    Router = Backbone.Router.extend({
+       routes: {
+           '' : 'stream',
+           'tracks/:id': 'track'
+       },
+       stream: function(){
+           console.log('stream!', app);
+           app.home = new Home();
+           app.transitionTo(app.home);
+       },
+       track: function(id){
+            // in a larger app we would throw up a throbber here
+            // and check for a cached model
+            console.log('track!!!');
+            var track = app.tracks.get({'id':id});
+            app.trackDetail = new TrackDetail({model:track});
+            app.transitionTo(app.trackDetail);
+       }
+    });
+
+    var Home = Backbone.View.extend({
+        id: 'home',
+        tagName: 'div',
+        initialize: function(){
+
+        },
         render: function(){
-            this.createModule('scrubber');
-            console.log(this.model);
-            this.model.play();
-            this.scrubber = new Scrubber({model:this.model});
+            var screen = app.currentScreen();
+            screen.id = 'tracks';
+            var trackView;
+            var self = this;
+
+            for(var i = 0, len = app.tracks.models.length; i < len; i++){
+                (function(model){
+                    trackView = new TrackView({model: model});
+                    trackView.render();
+                    trackView.el.id = 'track-' + model.id;
+                    trackView.el.className = 'track';
+                    self.el.appendChild(trackView.el);
+                }(app.tracks.models[i]));
+            }
+
+            return this;
+        }
+    });
+
+    var TrackDetail = Backbone.View.extend({
+        id: 'trackDetail',
+        tagName: 'div',
+        render: function(){
+            var screen = app.currentScreen();
+            this.scrubber = new Scrubber({model: this.model});
+            this.scrubber.render();
+            $(this.scrubber.el).appendTo(this.el);
+
+            // other view stuff here
+
+            // decide if autoplay or not
+            if(app.settings.autoplay) this.model.play();
+            return this;
         },
         model: Track
-    })
-
-    App = Backbone.View.extend({
-        initialize: function(){
-            var home = new Home();
-            this.currentScreen = home;
-        },
-        transitionTo: function(newScreen){
-            console.log(newScreen, this.currentScreen);
-            $('#container').css({'width' : '800px'});
-            $('#container .screen').addClass('slide-left');
-            this.currentScreen = newScreen;
-        }
     });
 
     Track = Backbone.Model.extend({
@@ -77,7 +175,8 @@
                 new TrackView({model: this});
             } else {
                 var self = this;
-                SC.get('/tracks/' + self.id, function(data){
+                SC.get('/tracks/' + self.id, function(data, error){
+                    if(error) console.log('ERROR: ', error);
                     // set all the attributes locally
                     self.set(data);
                     self.save();
@@ -90,6 +189,7 @@
             this.collection.currentTrack.destruct();
             this.collection.currentTrack = this;
             var stream = this.load();
+            console.log('stream before load', stream);
             stream.play();
             this.set({'selected' : true});
         },
@@ -129,9 +229,6 @@
                 });   
             }
         },
-        /*updateTime: function(){
-            this.trigger('time');
-        },*/
         destruct: function(){
             //if(self.timer) clearInterval(self.timer);
             if(this.stream) {
@@ -159,6 +256,7 @@
                 _.each(this.models, function(item, index, array){
                     //quick turn into a number
                     if(+item.id == obj){
+                        app.router.navigate('tracks/' + this.models[index].id, true);
                         item.play();
                     }
                 });
@@ -168,6 +266,7 @@
                 index = this.models.indexOf(this.currentTrack);
                 if(index > -1 && index <= this.models.length - 2){
                     index += 1;
+                    app.router.navigate('tracks/' + this.models[index].id, true);
                     this.models[index].play();
                 }
             }; 
@@ -176,6 +275,7 @@
                 index = this.models.indexOf(this.currentTrack);
                 if(index > 0){
                     index -= 1;
+                    app.router.navigate('tracks/' + this.models[index].id, true);
                     this.models[index].play();
                 }
             };
@@ -206,7 +306,8 @@
             this.collection.select('next');
         },
         template: Templates.Controls,
-        el: '#controls',
+        id: 'controls',
+        tagName: 'div',
         collection: Tracks,
         initialize: function(){
             this.render();
@@ -214,11 +315,14 @@
     });
 
     Scrubber = Backbone.View.extend({
+        className: 'scrubber',
+        tagName: 'div',
+        model: Track,
         initialize: function(){            
             var self = this;
             this.model.bind('play', function(){
-                self.render(); 
-                self.setScrubber(self.model.stream);
+                self.render();
+                self.setScrubber(self.model.stream); 
             });
             this.model.bind('pause', function(){
                 self.pauseScrubber(self.model.stream);
@@ -231,46 +335,46 @@
             });
         },
         setScrubber: function(stream){
+            var self = this;
             console.log('set scrubber!');
             var duration = this.model.attributes.duration;
             var position = stream.position || 0;
             //console.log(stream.bytesLoaded, stream.bytesTotal, stream.bytesTotal / stream.bytesLoaded)
             setTimeout(function(){
-                $('#scrubber-knob').css({
+                console.log($(self.el).find('.scrubber-knob'));
+                $(self.el).find('.scrubber-knob').css({
                 '-webkit-transform': 'translate3d(100%, 0px, 0)',
                 '-webkit-transition-duration': (duration - position) / 1000 + 's'});
            }, 1);
-
         },
         pauseScrubber: function(stream){
             var duration = this.model.attributes.duration;
             var position = stream.position;
-            $('#scrubber-knob').css({
-                '-webkit-transform': 'translate3d(' + (position/duration) * 100 + '%, 0px, 0)',
+            $(self.el).find('.scrubber-knob').css({
+                '-webkit-transform': 'translate3d(' + (position/duration) * 100 + '%,0,0)',
                 '-webkit-transition-duration': '0s'});
         },
-        model: Track,
-        el: '#scrubber',
         render: function(){
             var self = this;
             var track = this.model;
             console.log('scrubber render: ', track, this);
             $(this.el).html(self.template(track.toJSON()));
-            $('#scrubber-control').bind(activate, function(e){
+            $(this.el).find('.scrubber-control').bind(activate, function(e){
                e.preventDefault();
                self.pauseScrubber(self.model.stream);
             });
-            $('#scrubber-control').bind('touchmove', function(e){
+            $(this.el).find('.scrubber-control').bind('touchmove', function(e){
                e.preventDefault();
-               $('#scrubber-knob').css({
+               $(this).css({
                    '-webkit-transform': 'translate3d(' + e.touches[0].screenX + 'px,0,0)'
                });
             });
-            $('#scrubber-control').bind('touchend', function(e){
+            $(this.el).find('.scrubber-control').bind('touchend', function(e){
                 // touchend has changedtouches on iphone
                 // on android it may be different and we'll have to use touches like normal
                 e.preventDefault();
-                $('#scrubber-knob').css({
+                console.log(this);
+                $(this).css({
                    '-webkit-transform': 'translate3d(' + e.changedTouches[0].screenX + 'px,0,0)'
                 });
 
@@ -283,39 +387,35 @@
                 self.model.stream.setPosition(newPos);
                 self.setScrubber(self.model.stream);
             });
+            return this;
         },
         template: Templates.Scrubber
     });
 
     //created when a new track model is created
     TrackView = Backbone.View.extend({
+        className: 'track',
+        tagName: 'div',
         initialize: function(){
             //console.log(this.model);
-            this.model.bind('change', this.render, this);
-            var wrapper = document.createElement('div');
-            wrapper.id = 'track-' + this.model.id;
-            wrapper.className = 'track';
-            $('#tracks').append(wrapper);
-            this.render();
+            //this.model.bind('change', this.render, this);
         },
         template: Templates.TrackView,
         render: function(){
             var self = this;
-            var el = $('#track-' + this.model.id);
+            console.log('TRACK RENDER THIS: ', this, this.el);
             //changes details of track, play icon
-            el.html(this.template(this.model.toJSON()));
+            $(this.el).html(this.template(this.model.toJSON()));
 
             if(this.model.get('selected')){
-                el.addClass('selected');
+                $(this.el).addClass('selected');
             } else {
-                el.removeClass('selected');
+                $(this.el).removeClass('selected');
             }
                         
-            el.bind((hasTouch) ? 'touchstart' : 'click', function(){
-               //console.log('something?');
-               var trackDetail = new TrackDetail({model: self.model});
-               App.transitionTo(trackDetail);
-               //self.model.collection.select(self.model.id);
+            $(this.el)[(hasTouch) ? 'tap' : 'click'](function(e){
+                app.router.navigate('tracks/' + self.model.id, true);
+                $(self.el).unbind((hasTouch) ? 'touchstart' : 'click');
             });
             
             return this;   
@@ -325,8 +425,10 @@
 
     TestCloud.init = function(){
         console.log('init');
-        window.App = App = new App();
-        
+        app = new App();
+        app.router = new Router();
+        Backbone.history.start({root: '/TestCloud/'});
+        console.log(app);
     };
 })();
 

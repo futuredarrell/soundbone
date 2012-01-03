@@ -94,20 +94,13 @@ html[xmlns] .clearfix {
 * html .clearfix {
   height: 1%;
 }
-.app-wrapper {
-  height: 480px;
-  width: 320px;
-  position: relative;
-}
 #container {
   display: block;
-  width: 320px;
 }
 .screen {
   display: block;
   float: left;
-  width: 320px;
-  height: 480px;
+  width: 100%;
   background: #eee;
 }
 .screen:after {
@@ -158,13 +151,13 @@ html[xmlns] .clearfix {
 .playing {
   background: #f00;
 }
-#scrubber {
+.scrubber {
   height: 50px;
   display: block;
   background: #565656;
   position: relative;
 }
-#scrubber-knob {
+.scrubber-knob {
   height: 50px;
   width: 100%;
   display: block;
@@ -173,7 +166,7 @@ html[xmlns] .clearfix {
   opacity: 0.5;
   -webkit-transition-timing-function: linear;
 }
-#scrubber-control {
+.scrubber-control {
   width: 100%;
   height: 50px;
   border-right: 2px solid #ff5125;

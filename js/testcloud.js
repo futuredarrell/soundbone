@@ -478,12 +478,15 @@
 
             this.scrubber = new Scrubber({model: this.model});
             this.controls = new Controls({collection: app.tracks});
+            this.meta = new TrackMeta({model: this.model});
             
             this.scrubber.render();
             this.controls.render();
+            this.meta.render();
             
             $(this.scrubber.el).appendTo(this.el);
             $(this.controls.el).appendTo(this.el);
+            $(this.meta.el).appendTo(this.el);
 
             // other view stuff here
 
@@ -492,6 +495,21 @@
             return this;
         },
         model: Track
+    });
+
+    TrackMeta = Backbone.View.extend({
+        id: 'trackMeta',
+        tagName: 'div',
+        initialize: function(){
+            this.rendered = false;
+        },
+        render: function(){
+            this.rendered = true;
+            $(this.el).append(this.template(this.model.toJSON()));
+            return this;   
+        },
+        template: Templates.TrackMeta,
+        model: Track 
     });
 
     TestCloud.init = function(){

@@ -1,0 +1,22 @@
+<div class="meta-title">
+	<p><%= title %></p>
+</div>
+<div class="meta-creator">
+	<p>
+		<img src="<%= user.avatar_url %>" />
+		<span><%= user.username %></span>
+	</p>
+</div>
+<div class="meta-image">
+	<img width="200" height="200" src="<%= artwork_url %>" />
+</div>
+<div class="meta-comments">
+	<h3>Comments: <%= comment_count %></h3>
+</div>
+<div class="meta-created">
+	<p>Created: <%= created_at %></p>
+</div>
+<div class="meta-desc">
+	<p><%= description %></p>
+</div>
+

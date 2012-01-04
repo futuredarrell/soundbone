@@ -3,6 +3,7 @@
 (function () {
 
     var TestCloud, Tracks, Track, Controls, TrackView, Scrubber, App, app, Router, Screen,
+        Home, TrackDetail,
         activate = ('createTouch' in document) ? 'touchstart' : 'click',
         hasTouch = ('createTouch' in document) ? true : false;
 
@@ -128,58 +129,6 @@
        }
     });
 
-    var Home = Backbone.View.extend({
-        id: 'home',
-        tagName: 'div',
-        initialize: function(){
-            this.rendered = false;
-        },
-        render: function(){
-            this.rendered = true;
-            var screen = app.currentScreen();
-            screen.id = 'tracks';
-            var trackView;
-            var self = this;
-            _.each(app.tracks.models, function(model){
-                trackView = new TrackView({model: model});
-                trackView.render();
-                trackView.el.id = 'track-' + model.id;
-                trackView.el.className = 'track';
-                self.el.appendChild(trackView.el);
-            });
-            return this;
-        }
-    });
-
-    var TrackDetail = Backbone.View.extend({
-        id: 'trackDetail',
-        tagName: 'div',
-        initialize: function(){
-            this.rendered = false;  
-        },
-        render: function(){
-            this.rendered = true;
-
-            console.log('this.controls', this.controls);
-            console.log('this.scrubber', this.scrubber);
-            this.controls = new Controls({collection: app.tracks});
-            this.scrubber = new Scrubber({model: this.model});
-            
-            this.controls.render();
-            this.scrubber.render();
-
-            $(this.scrubber.el).appendTo(this.el);
-            $(this.controls.el).appendTo(this.el);
-
-            // other view stuff here
-
-            // decide if autoplay or not
-            if(app.settings.autoplay) this.model.play();
-            return this;
-        },
-        model: Track
-    });
-
     Track = Backbone.Model.extend({
         localStorage: new Store('tracks'),
         initialize: function(){
@@ -221,7 +170,7 @@
                     onplay: function(){
                         //self.trigger('play');
                         //self.timer = setInterval(_.bind(self.updateTime, self), 1000); 
-                        this.onposition(10, function(){
+                        this.onposition(100, function(){
                             console.log('stream reached 10');
                             self.trigger('play');
                         }); 
@@ -307,16 +256,35 @@
         events: {
             'click #previous': 'previous',
             'click #play': 'play',
-            'click #next': 'next',
-            'click #pause': 'pause'
+            'click #next': 'next'
         },
         play: function(e){
             e.preventDefault();
-            this.collection.currentTrack.play();
-        },
-        pause: function(e){
-            e.preventDefault();
-            this.collection.currentTrack.pause();
+            var track = this.collection.currentTrack;
+            switch(this.status){
+                case 'playing':
+                    this.status = 'paused';
+                    //console.log(status, ' so pause track!');
+                    track.pause();
+                    $('#play').html('unpause');
+                break;
+                case 'paused':
+                    this.status = 'resumed';
+                    //console.log(status, ' so play track!');
+                    track.pause();
+                    $('#play').html('pause');
+                break;
+                case 'resumed':
+                    this.status = 'playing';
+                    //console.log(status, ' so pause track!');
+                    $('#play').html('pause');
+                    track.pause();
+                break;
+                default:
+                    console.log(status, ' so play track!');
+                    track.play();
+                break;
+            }            
         },
         previous: function(e){
             e.preventDefault();
@@ -331,7 +299,27 @@
         tagName: 'div',
         collection: Tracks,
         initialize: function(){
+            var self = this;
+            // it bubbles up
+            var track = this.collection;
             this.rendered = false;
+            this.status = null;
+
+            // these listeners are to protect
+            // against button hits while the 
+            // track is buffering or loading
+            track.bind('play', function(){
+                self.status = 'playing';
+                $('#play').html('pause');
+            });
+            track.bind('pause', function(){
+                self.status = 'paused';
+                $('#play').html('unpause');
+            });
+            track.bind('resume', function(){
+                self.status = 'resumed';
+                $('#play').html('pause');
+            });
         }
     });
 
@@ -342,22 +330,23 @@
         initialize: function(){            
             var self = this;
             this.model.bind('play', function(){
-                self.setScrubber(self.model.stream); 
+                self.setScrubber(); 
             });
             this.model.bind('pause', function(){
-                self.pauseScrubber(self.model.stream);
+                self.pauseScrubber();
             });
             this.model.bind('resume', function(){
-                self.setScrubber(self.model.stream);
+                self.setScrubber();
             });
             this.model.bind('finish', function(){
                 console.log('track finish from scrubber');
             });
         },
-        setScrubber: function(stream){
-            var self = this;
+        setScrubber: function(){
             console.log('set scrubber!');
-            var duration = this.model.attributes.duration;
+            var self = this;
+            var stream = self.model.stream;
+            var duration = self.model.attributes.duration;
             var position = stream.position || 0;
             //console.log(stream.bytesLoaded, stream.bytesTotal, stream.bytesTotal / stream.bytesLoaded)
             setTimeout(function(){
@@ -367,22 +356,23 @@
                 '-webkit-transition-duration': (duration - position) / 1000 + 's'});
            }, 1);
         },
-        pauseScrubber: function(stream){
-            var self = this;
-            var duration = this.model.attributes.duration;
+        pauseScrubber: function(){
+            console.log('pause scrubber!');
+            var stream = this.model.stream;
             var position = stream.position;
-            $(self.el).find('.scrubber-knob').css({
+            var duration = this.model.attributes.duration;
+            $(this.el).find('.scrubber-knob').css({
                 '-webkit-transform': 'translate3d(' + (position/duration) * 100 + '%,0,0)',
                 '-webkit-transition-duration': '0s'});
         },
         render: function(){
             var self = this;
             var track = this.model;
-            console.log('scrubber render: ', track, this);
+            //console.log('scrubber render: ', track, this);
             $(this.el).html(self.template(track.toJSON()));
             $(this.el).find('.scrubber-control').bind('touchstart', function(e){
                e.preventDefault();
-               self.pauseScrubber(self.model.stream);
+               self.pauseScrubber();
             });
             $(this.el).find('.scrubber-control').bind('touchmove', function(e){
                e.preventDefault();
@@ -436,15 +426,70 @@
         render: function(){
             var self = this;
             this.rendered = true;
-            console.log('TRACK RENDER THIS: ', this, this.el);
+            //console.log('TRACK RENDER THIS: ', this, this.el);
             //changes details of track, play icon
             $(this.el).html(this.template(this.model.toJSON()));
+
+            // uses zeptos tap binding if a touch device
             $(this.el)[(hasTouch) ? 'tap' : 'click'](function(e){
                 app.router.navigate('tracks/' + self.model.id, true);
                 $(self.el).unbind((hasTouch) ? 'touchstart' : 'click');
             });
             self.mark();
             return this;   
+        },
+        model: Track
+    });
+
+    Home = Backbone.View.extend({
+        id: 'home',
+        tagName: 'div',
+        initialize: function(){
+            this.rendered = false;
+        },
+        render: function(){
+            this.rendered = true;
+            var screen = app.currentScreen();
+            screen.id = 'tracks';
+            var trackView;
+            var self = this;
+            _.each(app.tracks.models, function(model){
+                trackView = new TrackView({model: model});
+                trackView.render();
+                trackView.el.id = 'track-' + model.id;
+                trackView.el.className = 'track';
+                self.el.appendChild(trackView.el);
+            });
+            return this;
+        }
+    });
+
+    TrackDetail = Backbone.View.extend({
+        id: 'trackDetail',
+        tagName: 'div',
+        initialize: function(){
+            this.rendered = false;  
+        },
+        render: function(){
+            this.rendered = true;
+
+            console.log('this.controls', this.controls);
+            console.log('this.scrubber', this.scrubber);
+
+            this.scrubber = new Scrubber({model: this.model});
+            this.controls = new Controls({collection: app.tracks});
+            
+            this.scrubber.render();
+            this.controls.render();
+            
+            $(this.scrubber.el).appendTo(this.el);
+            $(this.controls.el).appendTo(this.el);
+
+            // other view stuff here
+
+            // decide if autoplay or not
+            if(app.settings.autoplay) this.model.play();
+            return this;
         },
         model: Track
     });

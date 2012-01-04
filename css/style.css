@@ -136,6 +136,17 @@ html[xmlns] .clearfix {
   background: #3875d7 !important;
   color: #fff;
 }
+.track-meta {
+  display: block;
+  float: left;
+  margin: 0;
+  padding: 0;
+}
+.track-meta .track-time {
+  margin: 5px 15px 15px 10px;
+  font-size: 18px;
+  height: 30px;
+}
 .paused {
   background: #000;
   color: #fff;

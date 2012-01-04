@@ -51,14 +51,12 @@
                 $(view.el).appendTo(self.currentScreen());
                 return false;
             } else {
-                view.render();
                 $(self.currentScreen()).css({
                     width: width,
                     float: 'left',
                     display: 'block'
                 });
-
-                $(self.createScreen()).css({
+                var nextScreen = $(self.createScreen()).css({
                     width: width,
                     float: 'left',
                     display: 'block',
@@ -67,7 +65,13 @@
                     // this could be a negative or positive
                     // depending on the transition
                     left: width 
-                }).append(view.el);
+                });
+                if(!view.rendered){
+                    view.render();
+                    $(nextScreen).append(view.el);
+                } else {
+                    $(nextScreen).html(view.el);
+                }
                 $('#container').css({
                     width: width * 2,
                     '-webkit-transform' : 'translate3d(' + -1 * width + 'px,0,0)',
@@ -75,18 +79,14 @@
                     'overflow': 'hidden'
                 });
                 $('#container').bind('webkitTransitionEnd', function(e){
-                    console.log('webkit end of transition');
-                    console.log(e.srcElement == this);
                     if(e.srcElement === $('#container')[0]){
-                        console.log('container switch');
                         var container = $('#container')[0];
-                        var remove = container.childNodes[0];
-                        container.removeChild(remove);
+                        container.removeChild(container.childNodes[0]);
                         $('#container').attr('style', '');
                         $('.screen').attr('style', '');
                         $('#container').unbind('webkitTransitionEnd');
-                        //$('#container').removeAttr('style');
                         self.screens = self.screens.slice(0,1);
+                        view.trigger('transitionEnd');
                     }
                 });   
             }
@@ -108,8 +108,15 @@
        },
        stream: function(){
            console.log('stream!', app);
-           app.home = new Home();
-           app.transitionTo(app.home);
+           console.log('app.home!!', app.home);
+           if(app.home){
+                console.log('dont create new!');
+                app.transitionTo(app.home);
+           } else {
+                console.log('create new!!!');
+               app.home = new Home();
+               app.transitionTo(app.home);
+           }
        },
        track: function(id){
             // in a larger app we would throw up a throbber here
@@ -125,24 +132,21 @@
         id: 'home',
         tagName: 'div',
         initialize: function(){
-
+            this.rendered = false;
         },
         render: function(){
+            this.rendered = true;
             var screen = app.currentScreen();
             screen.id = 'tracks';
             var trackView;
             var self = this;
-
-            for(var i = 0, len = app.tracks.models.length; i < len; i++){
-                (function(model){
-                    trackView = new TrackView({model: model});
-                    trackView.render();
-                    trackView.el.id = 'track-' + model.id;
-                    trackView.el.className = 'track';
-                    self.el.appendChild(trackView.el);
-                }(app.tracks.models[i]));
-            }
-
+            _.each(app.tracks.models, function(model){
+                trackView = new TrackView({model: model});
+                trackView.render();
+                trackView.el.id = 'track-' + model.id;
+                trackView.el.className = 'track';
+                self.el.appendChild(trackView.el);
+            });
             return this;
         }
     });
@@ -150,7 +154,11 @@
     var TrackDetail = Backbone.View.extend({
         id: 'trackDetail',
         tagName: 'div',
+        initialize: function(){
+            this.rendered = false;  
+        },
         render: function(){
+            this.rendered = true;
             var screen = app.currentScreen();
             this.scrubber = new Scrubber({model: this.model});
             this.scrubber.render();
@@ -236,6 +244,7 @@
             } else {
                 console.log('no stream to destruct!');
             }
+            this.trigger('destruct');
             this.set({'selected': false});
         }
     });
@@ -321,7 +330,6 @@
         initialize: function(){            
             var self = this;
             this.model.bind('play', function(){
-                self.render();
                 self.setScrubber(self.model.stream); 
             });
             this.model.bind('pause', function(){
@@ -397,27 +405,32 @@
         className: 'track',
         tagName: 'div',
         initialize: function(){
-            //console.log(this.model);
-            //this.model.bind('change', this.render, this);
+            this.rendered = false;
+            var self = this;
+            this.model.bind('change', function(){
+                self.mark();
+            });
         },
         template: Templates.TrackView,
+        mark: function(){
+            var self = this;
+            if(self.model.get('selected')){
+                $(self.el).addClass('selected');
+            } else {
+                $(self.el).removeClass('selected');
+            }
+        },
         render: function(){
             var self = this;
+            this.rendered = true;
             console.log('TRACK RENDER THIS: ', this, this.el);
             //changes details of track, play icon
             $(this.el).html(this.template(this.model.toJSON()));
-
-            if(this.model.get('selected')){
-                $(this.el).addClass('selected');
-            } else {
-                $(this.el).removeClass('selected');
-            }
-                        
             $(this.el)[(hasTouch) ? 'tap' : 'click'](function(e){
                 app.router.navigate('tracks/' + self.model.id, true);
                 $(self.el).unbind((hasTouch) ? 'touchstart' : 'click');
             });
-            
+            self.mark();
             return this;   
         },
         model: Track

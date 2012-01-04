@@ -1,14 +1,7 @@
 <div>
-	<%
-	var stream = this.model.attributes.stream || {};
-	var playState = stream.playState;
-	if(stream.paused){ %>
-		<span class="paused">||</span>
-	<% } else if(playState == 1) { %>
-		<span class="playing">></span>
-	<% } else { %>
-		<span class=""></span>
-	<% } %>
+	<div class="track-meta">
+		<div class="track-time">00:00</div>
+	</div>
 	<h3 class="track-title"><%= title %></h3>
 	<h4 class="track-username"><%= user.username %></h4>
 </div>

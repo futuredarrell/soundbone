@@ -107,8 +107,8 @@
            'tracks/:id': 'track'
        },
        stream: function(){
-           console.log('stream!', app);
-           console.log('app.home!!', app.home);
+           //console.log('stream!', app);
+           //console.log('app.home!!', app.home);
            if(app.home){
                 console.log('dont create new!');
                 app.transitionTo(app.home);
@@ -159,10 +159,17 @@
         },
         render: function(){
             this.rendered = true;
-            var screen = app.currentScreen();
+
+            console.log('this.controls', this.controls);
+            console.log('this.scrubber', this.scrubber);
+            this.controls = new Controls({collection: app.tracks});
             this.scrubber = new Scrubber({model: this.model});
+            
+            this.controls.render();
             this.scrubber.render();
+
             $(this.scrubber.el).appendTo(this.el);
+            $(this.controls.el).appendTo(this.el);
 
             // other view stuff here
 
@@ -293,6 +300,7 @@
 
     Controls = Backbone.View.extend({
         render: function(){
+            this.rendered = true;
             $(this.el).append(this.template());
             return this;
         },
@@ -302,16 +310,20 @@
             'click #next': 'next',
             'click #pause': 'pause'
         },
-        play: function(){
+        play: function(e){
+            e.preventDefault();
             this.collection.currentTrack.play();
         },
-        pause: function(){
+        pause: function(e){
+            e.preventDefault();
             this.collection.currentTrack.pause();
         },
-        previous: function(){
+        previous: function(e){
+            e.preventDefault();
             this.collection.select('previous');
         },
-        next: function(){
+        next: function(e){
+            e.preventDefault();
             this.collection.select('next');
         },
         template: Templates.Controls,
@@ -319,7 +331,7 @@
         tagName: 'div',
         collection: Tracks,
         initialize: function(){
-            this.render();
+            this.rendered = false;
         }
     });
 
@@ -356,6 +368,7 @@
            }, 1);
         },
         pauseScrubber: function(stream){
+            var self = this;
             var duration = this.model.attributes.duration;
             var position = stream.position;
             $(self.el).find('.scrubber-knob').css({
@@ -367,7 +380,7 @@
             var track = this.model;
             console.log('scrubber render: ', track, this);
             $(this.el).html(self.template(track.toJSON()));
-            $(this.el).find('.scrubber-control').bind(activate, function(e){
+            $(this.el).find('.scrubber-control').bind('touchstart', function(e){
                e.preventDefault();
                self.pauseScrubber(self.model.stream);
             });

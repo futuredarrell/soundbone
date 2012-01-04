@@ -188,15 +188,6 @@ html[xmlns] .clearfix {
   background: #ff2a00;
 }
 /* Controls */
-#controls {
-  position: absolute;
-  top: 430px;
-  display: block;
-  width: 320px;
-  height: 50px;
-  float: left;
-  left: 0;
-}
 .control {
   background: #eee;
   color: #000;

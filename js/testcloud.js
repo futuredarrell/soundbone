@@ -133,6 +133,12 @@
         localStorage: new Store('tracks'),
         initialize: function(){
             // set a load limit first ???
+
+            // TODO: rework this so that
+            // trackview is loaded immediately
+            // and then once trackview gets a
+            // success or error it updates the view
+
             this.set({'selected' : false});
             if(this.localStorage.find(this)){
                 this.set(this.localStorage.find(this));
@@ -254,9 +260,9 @@
             return this;
         },
         events: {
-            'click #previous': 'previous',
-            'click #play': 'play',
-            'click #next': 'next'
+            'touchstart #previous': 'previous',
+            'touchstart #play': 'play',
+            'touchstart #next': 'next'
         },
         play: function(e){
             e.preventDefault();
@@ -484,8 +490,8 @@
             this.controls.render();
             this.meta.render();
             
-            $(this.scrubber.el).appendTo(this.el);
             $(this.controls.el).appendTo(this.el);
+            $(this.scrubber.el).appendTo(this.el);
             $(this.meta.el).appendTo(this.el);
 
             // other view stuff here

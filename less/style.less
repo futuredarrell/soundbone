@@ -10,6 +10,30 @@ body {
 	font-size: 14px;
 }
 
+// mixins
+// background
+.gradient (@startColor: #a7a7a7, @endColor: #cacaca) {
+	background-color: @endColor;
+    background-repeat: repeat-x;
+	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, @startColor), color-stop(100%, @endColor));
+	background-image: -webkit-linear-gradient(top, @startColor, @endColor);
+}
+// Border Radius
+.border-radius(@radius: 5px) {
+  -webkit-border-radius: @radius;
+          border-radius: @radius;
+}
+
+
+@greyBottom: #a7a7a7;
+@greyTop: #cacaca;
+
+@blueBottom: #006cb6;
+@blueTop: #5ba6da;
+
+@darkText: #333;
+
+
 @SCblue: #edf3fe;
 @SCdarkblue: #3875d7;
 @SCorange: #ff5125;
@@ -76,7 +100,7 @@ html[xmlns] .clearfix {
 	color: #fff;
 }
 
-.paused{
+/*.paused{
 	background: #000;
 	color: #fff;
 	display: block;
@@ -90,11 +114,11 @@ html[xmlns] .clearfix {
 }
 .playing{
 	background: #f00;
-}
+}*/
 .scrubber{
 	height: 50px;
 	display: block;
-	background: #565656;
+	.gradient;
 	position: relative;
 }
 .scrubber-knob{
@@ -109,7 +133,6 @@ html[xmlns] .clearfix {
 .scrubber-control{
 	width: 100%;
 	height: 50px;
-	border-right: 2px solid @SCorange;
 	display: block;
 	position: relative;
 	top: 0;
@@ -118,17 +141,74 @@ html[xmlns] .clearfix {
 }
 
 /* Controls */
+.track-playback {
+	width: 50%;
+	display: block;
+	float: left;
+}
+.track-time {
+	text-align: center;
+	width: 50%;
+	display: block;
+	float: left;
+	h3 {
+		padding-top: 20px;
+		font-size: 18px;
+	}
+}
+.track-current {
+	font-weight: bold;
+}
 #controls{
-	
+	height: 60px;
+	.gradient(@greyTop, @greyBottom);
+	border-top:1px solid #333;
+	-webkit-box-shadow: inset 2px 0 8px #333;
 }
 .control {
 	background: #eee;
 	color: #000;
 	display: block;
-	float: left;
-	width: 25%;
-	height: 50px;
-	font-size: 24px;
+	float: right;
+	height: 34px;
+	padding-top: 25px;
+	width: 50px;
+	//border-right: 1px solid @greyBottom;
+	//border-left: 1px solid @greyTop;
+	font-size: 10px;
+	-webkit-box-shadow: 0 1px 2px #333;
+	.gradient(#fff, @greyTop);
+	text-align: center;
+	&:active {
+		-webkit-box-shadow: inset 0 1px 2px #333;
+	}
+
+}
+/* Track Meta */
+#trackMeta {
+	clear: both;
+	background: #fff;
+	//padding: 20px;
+}
+.meta-title, .meta-comments {
+	font-size: 18px;
+	padding: 20px 20px 10px 20px;
+	color: #333;
+}
+.meta-creator {
+	padding: 0px 20px 20px 20px;
+	color: #666;
+}
+.meta-image {
+	background: #eee;
+	text-align: center;
+	height: 250px;
+	display: block;
+	margin: 0 auto;
+
+	img {
+		padding-top: 25px;
+	}
 }
 
 

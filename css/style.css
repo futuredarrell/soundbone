@@ -136,25 +136,28 @@ html[xmlns] .clearfix {
   background: #3875d7 !important;
   color: #fff;
 }
-.paused {
-  background: #000;
-  color: #fff;
-  display: block;
-  width: 10px;
-  height: 10px;
-  padding: 2px;
-  font-size: 9px;
-  float: left;
-  text-align: center;
-  margin-right: 5px;
+/*.paused{
+	background: #000;
+	color: #fff;
+	display: block;
+	width: 10px;
+	height: 10px;
+	padding: 2px;
+	font-size: 9px;
+	float: left;
+	text-align: center;
+	margin-right: 5px;
 }
-.playing {
-  background: #f00;
-}
+.playing{
+	background: #f00;
+}*/
 .scrubber {
   height: 50px;
   display: block;
-  background: #565656;
+  background-color: #cacaca;
+  background-repeat: repeat-x;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #a7a7a7), color-stop(100%, #cacaca));
+  background-image: -webkit-linear-gradient(top, #a7a7a7, #cacaca);
   position: relative;
 }
 .scrubber-knob {
@@ -169,7 +172,6 @@ html[xmlns] .clearfix {
 .scrubber-control {
   width: 100%;
   height: 50px;
-  border-right: 2px solid #ff5125;
   display: block;
   position: relative;
   top: 0;
@@ -177,12 +179,73 @@ html[xmlns] .clearfix {
   background: #ff2a00;
 }
 /* Controls */
+.track-playback {
+  width: 50%;
+  display: block;
+  float: left;
+}
+.track-time {
+  text-align: center;
+  width: 50%;
+  display: block;
+  float: left;
+}
+.track-time h3 {
+  padding-top: 20px;
+  font-size: 18px;
+}
+.track-current {
+  font-weight: bold;
+}
+#controls {
+  height: 60px;
+  background-color: #a7a7a7;
+  background-repeat: repeat-x;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #cacaca), color-stop(100%, #a7a7a7));
+  background-image: -webkit-linear-gradient(top, #cacaca, #a7a7a7);
+  border-top: 1px solid #333;
+  -webkit-box-shadow: inset 2px 0 8px #333;
+}
 .control {
   background: #eee;
   color: #000;
   display: block;
-  float: left;
-  width: 25%;
-  height: 50px;
-  font-size: 24px;
+  float: right;
+  height: 34px;
+  padding-top: 25px;
+  width: 50px;
+  font-size: 10px;
+  -webkit-box-shadow: 0 1px 2px #333;
+  background-color: #cacaca;
+  background-repeat: repeat-x;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ffffff), color-stop(100%, #cacaca));
+  background-image: -webkit-linear-gradient(top, #ffffff, #cacaca);
+  text-align: center;
+}
+.control:active {
+  -webkit-box-shadow: inset 0 1px 2px #333;
+}
+/* Track Meta */
+#trackMeta {
+  clear: both;
+  background: #fff;
+}
+.meta-title, .meta-comments {
+  font-size: 18px;
+  padding: 20px 20px 10px 20px;
+  color: #333;
+}
+.meta-creator {
+  padding: 0px 20px 20px 20px;
+  color: #666;
+}
+.meta-image {
+  background: #eee;
+  text-align: center;
+  height: 250px;
+  display: block;
+  margin: 0 auto;
+}
+.meta-image img {
+  padding-top: 25px;
 }

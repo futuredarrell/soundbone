@@ -88,6 +88,7 @@
                         $('#container').unbind('webkitTransitionEnd');
                         self.screens = self.screens.slice(0,1);
                         view.trigger('transitionEnd');
+                        app.currentView = view;
                     }
                 });   
             }
@@ -124,6 +125,7 @@
             // and check for a cached model
             console.log('track!!!');
             var track = app.tracks.get({'id':id});
+            if(app.trackDetail) delete app.trackDetail;
             app.trackDetail = new TrackDetail({model:track});
             app.transitionTo(app.trackDetail);
        }
@@ -159,7 +161,6 @@
             this.collection.currentTrack.destruct();
             this.collection.currentTrack = this;
             var stream = this.load();
-            console.log('stream before load', stream);
             stream.play();
             this.set({'selected' : true});
         },
@@ -174,8 +175,6 @@
             } else {
                 return this.stream = SC.stream(this.id, {
                     onplay: function(){
-                        //self.trigger('play');
-                        //self.timer = setInterval(_.bind(self.updateTime, self), 1000); 
                         this.onposition(100, function(){
                             console.log('stream reached 10');
                             self.trigger('play');
@@ -184,17 +183,14 @@
                     onfinish: function(){
                         self.collection.select('next');
                         self.trigger('finish');
-                        //clearInterval(self.timer);
                         self.destruct();
                         console.log('destroying track');
                     },
                     onpause: function(){
                         self.trigger('pause');
-                        //clearInterval(self.timer);
                     },
                     onresume: function(){
                         self.trigger('resume');
-                        //self.timer = setInterval(_.bind(self.updateTime, self), 1000);
                     }
                 });   
             }
@@ -256,45 +252,51 @@
     Controls = Backbone.View.extend({
         render: function(){
             this.rendered = true;
-            $(this.el).append(this.template());
+            var self = this;
+            $(this.el).append(this.template(this.model.toJSON()));
             return this;
         },
         events: {
-            'click #previous': 'previous',
-            'click #play': 'play',
-            'click #next': 'next'
+            'touchstart #previous': 'previous',
+            'touchstart #play': 'play',
+            'touchstart #next': 'next'
         },
         updateControl: function(){
-            console.log('update control ', this.status);
+            console.log('update control ', this.status, this.model.stream.position);
             if(this.status === 'paused'){
                 $('#play').removeClass('pause');
             } else {
                 $('#play').addClass('pause');
             }
         },
+        updateTime: function(){
+            var stream = this.model.stream;
+            var self = this;
+
+            if(stream.playState === 1 && !stream.paused){
+                $('.track-current').html(self.formatTime(stream.position));
+                setTimeout(_.bind(self.updateTime, self), 900);
+            }
+        },
         play: function(e){
             e.preventDefault();
-            var track = this.collection.currentTrack;
+            var track = this.model;
             switch(this.status){
                 case 'playing':
                     this.status = 'paused';
                     console.log('CASE PLAYING');
                     track.pause();
-                    //$('#play').toggleClass('pause');
                     this.updateControl();
                 break;
                 case 'paused':
                     this.status = 'resumed';
                     console.log('CASE PAUSED');
                     track.pause();
-                    //$('#play').toggleClass('pause');
                     this.updateControl();
                 break;
                 case 'resumed':
-                console.log('CASE RESUMED');
+                    console.log('CASE RESUMED');
                     this.status = 'playing';
-                    //console.log(status, ' so pause track!');
-                    //$('#play').toggleClass('pause');
                     track.pause();
                     this.updateControl();
                 break;
@@ -307,20 +309,26 @@
         },
         previous: function(e){
             e.preventDefault();
-            this.collection.select('previous');
+            this.model.collection.select('previous');
         },
         next: function(e){
             e.preventDefault();
-            this.collection.select('next');
+            this.model.collection.select('next');
+        },
+        formatTime: function(time){
+            var seconds = Math.floor(time / 1000)
+            var minutes = Math.floor(seconds / 60);
+            seconds = ((seconds % 60) < 10) ? '0' + seconds % 60 : seconds % 60;
+            minutes = (minutes < 60) ? '0'+ minutes : minutes;
+            return (minutes + ':' + seconds);
         },
         template: Templates.Controls,
         id: 'controls',
         tagName: 'div',
-        collection: Tracks,
+        model: Track,
         initialize: function(){
             var self = this;
-            // it bubbles up
-            var track = this.collection;
+            var track = this.model;
             this.rendered = false;
             this.status = null;
 
@@ -328,22 +336,19 @@
             // against button hits while the 
             // track is buffering or loading
             track.bind('play', function(){
+                $('.track-duration').html(self.formatTime(self.model.get('duration')));
                 self.status = 'playing';
-                //console.log(status, ' so play track!');
-                //$('#play').toggleClass('pause');
                 self.updateControl();
+                self.updateTime();
             });
             track.bind('pause', function(){
                 self.status = 'paused';
-                //console.log(status, ' so toggle to pause');
-                //$('#play').toggleClass('pause');
                 self.updateControl();
             });
             track.bind('resume', function(){
                 self.status = 'resumed';
-                //console.log(status, ' so ???');
-                //$('#play').toggleClass('pause');
                 self.updateControl();
+                self.updateTime();
             });
         }
     });
@@ -493,16 +498,16 @@
         id: 'trackDetail',
         tagName: 'div',
         initialize: function(){
-            this.rendered = false;  
+            this.rendered = false;
+            var self = this;
         },
         render: function(){
             this.rendered = true;
-
             console.log('this.controls', this.controls);
             console.log('this.scrubber', this.scrubber);
 
             this.scrubber = new Scrubber({model: this.model});
-            this.controls = new Controls({collection: app.tracks});
+            this.controls = new Controls({model: this.model});
             this.meta = new TrackMeta({model: this.model});
             
             this.scrubber.render();

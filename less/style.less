@@ -59,6 +59,50 @@ html[xmlns] .clearfix {
 	height: 1%;
 }
 
+#app-header {
+	display: block;
+	height: 35px;
+	.gradient(#ff6900, #ff1b00);
+	text-align: center;
+	margin: 0;
+	position: relative;
+	-webkit-box-shadow: inset 0 -1px 2px 0 #333;
+	z-index: 1;
+	font-family: 'Helvetica Neue', Helvetica, sans-serif;
+	font-weight: bold;
+	font-size: 18px;
+	color: #fff;
+	padding-top: 15px;
+	text-shadow: #3C3D3E 0 -1px 0;
+
+	#header-left {
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
+	#header-right {
+		position: absolute;
+		right: 15px;
+		top: 15px;
+		display: block;
+
+		.icon, .icon:visited {
+			height: 15px;
+			width: 15px;
+			font-size: 16px;
+			font-weight: bold;
+			color: #fff;
+			background: #ff1b00;
+			padding: 10px;
+			.border-radius;
+			text-decoration: none;
+		}
+		.icon:active {
+			opacity: 0.25;
+		}
+	}
+}
+
 #container {
 	display: block;
 }
@@ -100,21 +144,6 @@ html[xmlns] .clearfix {
 	color: #fff;
 }
 
-/*.paused{
-	background: #000;
-	color: #fff;
-	display: block;
-	width: 10px;
-	height: 10px;
-	padding: 2px;
-	font-size: 9px;
-	float: left;
-	text-align: center;
-	margin-right: 5px;
-}
-.playing{
-	background: #f00;
-}*/
 .scrubber{
 	height: 50px;
 	display: block;

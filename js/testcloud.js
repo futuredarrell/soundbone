@@ -3,7 +3,7 @@
 (function () {
 
     var TestCloud, Tracks, Track, Controls, TrackView, Scrubber, App, app, Router, Screen,
-        Home, TrackDetail,
+        Home, TrackDetail, Header,
         activate = ('createTouch' in document) ? 'touchstart' : 'click',
         hasTouch = ('createTouch' in document) ? true : false;
 
@@ -24,6 +24,7 @@
             self.stream = [5968824, 4456728, 291];
             //self.stream = [5968824, 4456728, 291, 31359980, 28377811, 25715240, 28925819, 28768833];
             self.tracks = new Tracks();
+            self.header = new Header();
 
             self.settings = {
                 autoplay: true
@@ -44,14 +45,18 @@
             console.log('transition to', view);
             var width = $(window).width();
             var self = this;
+            var header = self.header;
 
             if(!self.currentView){
                 console.log('no current view');
                 self.currentView = view;
                 view.render();
+                $(header.el).appendTo(self.currentScreen());
+                header.update(view);
                 $(view.el).appendTo(self.currentScreen());
                 return false;
             } else {
+
                 $(self.currentScreen()).css({
                     width: width,
                     float: 'left',
@@ -67,12 +72,11 @@
                     // depending on the transition
                     left: width 
                 });
-                if(!view.rendered){
-                    view.render();
-                    $(nextScreen).append(view.el);
-                } else {
-                    $(nextScreen).html(view.el);
-                }
+                if(!view.rendered) view.render();
+                $(header.el).appendTo(nextScreen);
+                header.update(view);   
+                $(nextScreen).append(view.el);
+
                 $('#container').css({
                     width: width * 2,
                     '-webkit-transform' : 'translate3d(' + -1 * width + 'px,0,0)',
@@ -257,9 +261,12 @@
             return this;
         },
         events: {
-            'touchstart #previous': 'previous',
+            'click #previous': 'previous',
+            'click #play': 'play',
+            'click #next': 'next'
+            /*'touchstart #previous': 'previous',
             'touchstart #play': 'play',
-            'touchstart #next': 'next'
+            'touchstart #next': 'next'*/
         },
         updateControl: function(){
             console.log('update control ', this.status, this.model.stream.position);
@@ -433,7 +440,27 @@
         template: Templates.Scrubber
     });
 
-    //created when a new track model is created
+    Header = Backbone.View.extend({
+        id: 'app-header',
+        tagName: 'header',
+        initialize: function(){
+            this.render();
+        },
+        render: function(){
+            var self = this;
+            $(self.el).append(self.template());
+            return this;
+        },
+        update: function(view){
+            //accepts a view and takes its attributes
+            var title = view.title || '';
+            var headerRight = view.headerRight || '';
+            $('#header-title').html(title);
+            $('#header-right').html(headerRight);
+        },
+        template: _.template('<div id="header-left"></div><h1 id="header-title"></h1><div id="header-right"></div>')
+    });
+
     TrackView = Backbone.View.extend({
         className: 'track',
         tagName: 'div',
@@ -472,6 +499,7 @@
     });
 
     Home = Backbone.View.extend({
+        title: '&#9729;',
         id: 'home',
         tagName: 'div',
         initialize: function(){
@@ -497,6 +525,7 @@
     TrackDetail = Backbone.View.extend({
         id: 'trackDetail',
         tagName: 'div',
+        headerRight: _.template('<a class="icon" href="/TestCloud/">♫</a>'),
         initialize: function(){
             this.rendered = false;
             var self = this;
@@ -505,6 +534,8 @@
             this.rendered = true;
             console.log('this.controls', this.controls);
             console.log('this.scrubber', this.scrubber);
+
+            this.title = '' + this.model.get('title').slice(0, 16).concat(' ...');
 
             this.scrubber = new Scrubber({model: this.model});
             this.controls = new Controls({model: this.model});

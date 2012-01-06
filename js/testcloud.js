@@ -525,7 +525,13 @@
     TrackDetail = Backbone.View.extend({
         id: 'trackDetail',
         tagName: 'div',
-        headerRight: _.template('<a class="icon" href="/TestCloud/">♫</a>'),
+        headerRight: function(){
+            var el = $('<a class="icon" href="#">♫</a>').bind('click', function(){
+                app.router.navigate('', true);
+            });
+            return el;
+          //_.template('<a class="icon" href="/TestCloud/">♫</a>'),  
+        },
         initialize: function(){
             this.rendered = false;
             var self = this;

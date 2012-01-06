@@ -33,7 +33,6 @@ body {
 
 @darkText: #333;
 
-
 @SCblue: #edf3fe;
 @SCdarkblue: #3875d7;
 @SCorange: #ff5125;
@@ -275,6 +274,68 @@ html[xmlns] .clearfix {
 
 	img {
 		padding-top: 25px;
+	}
+}
+.track-comments {
+	background: #fff;
+	padding: 20px;
+	.comment {
+		clear: both;
+		//border-bottom: 1px solid #eee;
+		padding-bottom: 10px;
+		margin-bottom: 35px;
+		p {
+			padding: 5px 0;
+			font-size: 12px;
+			img {
+				float: left;
+				padding: 0 5px 5px 0;
+			}
+		}
+	}
+}
+
+.comment
+{
+	position: relative;
+	padding: 10px;
+	text-align: left;
+	background-color: #fff;
+	border: 1px solid @greyBottom;
+	.border-radius;
+}
+.comment:before
+{
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+	right: 20px;
+	top: 100%;
+	border: 6px solid;
+	border-color: @greyBottom transparent transparent @greyBottom;
+}
+.comment:after
+{
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+	right: 21px;
+	top: 100%;
+	border: 5px solid;
+	border-color: #fff transparent transparent #fff;
+}
+.comment-meta {
+	position: absolute;
+	top: 100%;
+	right: 38px;
+	padding-top: 7px;
+	font-size: 10px;
+	color: @greyBottom;
+	img {
+		float: right;
+		margin-left: 5px;
 	}
 }
 

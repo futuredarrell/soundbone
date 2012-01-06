@@ -309,3 +309,61 @@ html[xmlns] .clearfix {
 .meta-image img {
   padding-top: 25px;
 }
+.track-comments {
+  background: #fff;
+  padding: 20px;
+}
+.track-comments .comment {
+  clear: both;
+  padding-bottom: 10px;
+  margin-bottom: 35px;
+}
+.track-comments .comment p {
+  padding: 5px 0;
+  font-size: 12px;
+}
+.track-comments .comment p img {
+  float: left;
+  padding: 0 5px 5px 0;
+}
+.comment {
+  position: relative;
+  padding: 10px;
+  text-align: left;
+  background-color: #fff;
+  border: 1px solid #a7a7a7;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+}
+.comment:before {
+  content: ' ';
+  position: absolute;
+  width: 0;
+  height: 0;
+  right: 20px;
+  top: 100%;
+  border: 6px solid;
+  border-color: #a7a7a7 transparent transparent #a7a7a7;
+}
+.comment:after {
+  content: ' ';
+  position: absolute;
+  width: 0;
+  height: 0;
+  right: 21px;
+  top: 100%;
+  border: 5px solid;
+  border-color: #fff transparent transparent #fff;
+}
+.comment-meta {
+  position: absolute;
+  top: 100%;
+  right: 38px;
+  padding-top: 7px;
+  font-size: 10px;
+  color: #a7a7a7;
+}
+.comment-meta img {
+  float: right;
+  margin-left: 5px;
+}

@@ -3,7 +3,7 @@
 (function () {
 
     var TestCloud, Tracks, Track, Controls, TrackView, Scrubber, App, app, Router, Screen,
-        Home, TrackDetail, Header,
+        Home, TrackDetail, Header, Comments,
         activate = ('createTouch' in document) ? 'touchstart' : 'click',
         hasTouch = ('createTouch' in document) ? true : false;
 
@@ -549,6 +549,13 @@
             $(this.controls.el).appendTo(this.el);
             $(this.meta.el).appendTo(this.el);
 
+            if(this.model.get('comment_count') > 0) {
+              console.log('comment count', this.model.get('comment_count'));
+              this.comments = new Comments({model: this.model});
+              this.comments.render();
+              $(this.comments.el).appendTo(this.el);
+            };
+
             // other view stuff here
 
             // decide if autoplay or not
@@ -571,6 +578,54 @@
         },
         template: Templates.TrackMeta,
         model: Track 
+    });
+
+    Comments = Backbone.View.extend({
+        className: 'track-comments',
+        tagName: 'div',
+        model: Track,
+        initialize: function(){
+            this.offset = 0;
+            this.limit = 20;
+        },
+        render: function(){
+            var self = this;
+            $(self.el).append(self.template());
+            return this;
+        },
+        events: {
+            'click .load-comments' : 'load',
+        },
+        load: function(e){
+            var self = this;
+            e.preventDefault();
+            console.log('LOAD COMMENTS');
+            $(self.el).append('<div id="track-' + self.model.id + '-comments" class="loading">Loading ... </div>');
+            var self = this;
+            SC.get('/tracks/' + self.model.id + '/comments', {limit: 20, offset: self.offset}, function(data, error){
+                var el = $('#track-' + self.model.id + '-comments')[0];
+                $('#track-' + self.model.id + '-comments')[0].parentNode.removeChild(el);
+                if(error) console.log('ERROR: ', error);
+                console.log('COMMENTS DATA: ', data);
+                // set all the attributes locally
+                //self.set(data);
+                //self.save();
+                self.update(data);
+                self.offset += self.limit;
+            });
+        },
+        update: function(data){
+            //update ui, save comments to storage
+            var self = this;
+            //var el = $('#track-' + self.model.id + '-comments');
+            $('.load-comments').html('Load 20 More Comments');
+            var template = _.template('<div id="comment-<%= id %>" class="comment"><p><%= body %></p><div class="comment-meta"><%= user.username %><img src="<%= user.avatar_url %>" width="20" height="20" /></div></div>');
+            _.each(data, function(obj){
+                $('.load-comments').before(template(obj));
+                //$('#track-' + self.model.id + '-comments').append(template(obj));
+            });
+        },
+        template: _.template('<a href="javascript: void(0)" class="load-comments">Load Comments</a>')
     });
 
     TestCloud.init = function(){

@@ -260,9 +260,17 @@
             return this;
         },
         events: {
-            'touchstart #previous': 'previous',
-            'touchstart #play': 'play',
-            'touchstart #next': 'next'
+            'click #previous': 'previous',
+            'click #play': 'play',
+            'click #next': 'next'
+        },
+        updateControl: function(){
+            console.log('update control ', this.status);
+            if(this.status === 'paused'){
+                $('#play').removeClass('pause');
+            } else {
+                $('#play').addClass('pause');
+            }
         },
         play: function(e){
             e.preventDefault();
@@ -270,25 +278,30 @@
             switch(this.status){
                 case 'playing':
                     this.status = 'paused';
-                    //console.log(status, ' so pause track!');
+                    console.log('CASE PLAYING');
                     track.pause();
-                    $('#play').html('unpause');
+                    //$('#play').toggleClass('pause');
+                    this.updateControl();
                 break;
                 case 'paused':
                     this.status = 'resumed';
-                    //console.log(status, ' so play track!');
+                    console.log('CASE PAUSED');
                     track.pause();
-                    $('#play').html('pause');
+                    //$('#play').toggleClass('pause');
+                    this.updateControl();
                 break;
                 case 'resumed':
+                console.log('CASE RESUMED');
                     this.status = 'playing';
                     //console.log(status, ' so pause track!');
-                    $('#play').html('pause');
+                    //$('#play').toggleClass('pause');
                     track.pause();
+                    this.updateControl();
                 break;
                 default:
-                    console.log(status, ' so play track!');
+                    console.log(status, ' DEFAULT so play track!');
                     track.play();
+                    this.updateControl();
                 break;
             }            
         },
@@ -316,15 +329,21 @@
             // track is buffering or loading
             track.bind('play', function(){
                 self.status = 'playing';
-                $('#play').html('pause');
+                //console.log(status, ' so play track!');
+                //$('#play').toggleClass('pause');
+                self.updateControl();
             });
             track.bind('pause', function(){
                 self.status = 'paused';
-                $('#play').html('unpause');
+                //console.log(status, ' so toggle to pause');
+                //$('#play').toggleClass('pause');
+                self.updateControl();
             });
             track.bind('resume', function(){
                 self.status = 'resumed';
-                $('#play').html('pause');
+                //console.log(status, ' so ???');
+                //$('#play').toggleClass('pause');
+                self.updateControl();
             });
         }
     });
@@ -349,21 +368,21 @@
             });
         },
         setScrubber: function(){
-            console.log('set scrubber!');
+            //console.log('set scrubber!');
             var self = this;
             var stream = self.model.stream;
             var duration = self.model.attributes.duration;
             var position = stream.position || 0;
             //console.log(stream.bytesLoaded, stream.bytesTotal, stream.bytesTotal / stream.bytesLoaded)
             setTimeout(function(){
-                console.log($(self.el).find('.scrubber-knob'));
+                //console.log($(self.el).find('.scrubber-knob'));
                 $(self.el).find('.scrubber-knob').css({
                 '-webkit-transform': 'translate3d(100%, 0px, 0)',
                 '-webkit-transition-duration': (duration - position) / 1000 + 's'});
            }, 1);
         },
         pauseScrubber: function(){
-            console.log('pause scrubber!');
+            //console.log('pause scrubber!');
             var stream = this.model.stream;
             var position = stream.position;
             var duration = this.model.attributes.duration;
@@ -390,7 +409,7 @@
                 // touchend has changedtouches on iphone
                 // on android it may be different and we'll have to use touches like normal
                 e.preventDefault();
-                console.log(this);
+                //console.log(this);
                 $(this).css({
                    '-webkit-transform': 'translate3d(' + e.changedTouches[0].screenX + 'px,0,0)'
                 });
@@ -490,8 +509,8 @@
             this.controls.render();
             this.meta.render();
             
-            $(this.controls.el).appendTo(this.el);
             $(this.scrubber.el).appendTo(this.el);
+            $(this.controls.el).appendTo(this.el);
             $(this.meta.el).appendTo(this.el);
 
             // other view stuff here

@@ -73,8 +73,8 @@
                     left: width 
                 });
                 if(!view.rendered) view.render();
-                $(header.el).appendTo(nextScreen);
-                header.update(view);   
+                header = new Header();
+                $(header.el).appendTo(nextScreen); 
                 $(nextScreen).append(view.el);
 
                 $('#container').css({
@@ -93,6 +93,7 @@
                         self.screens = self.screens.slice(0,1);
                         view.trigger('transitionEnd');
                         app.currentView = view;
+                        header.update(view);  
                     }
                 });   
             }

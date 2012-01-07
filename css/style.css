@@ -140,7 +140,7 @@ html[xmlns] .clearfix {
   opacity: 0.25;
 }
 #container {
-  display: block;
+  position: relative;
 }
 .screen {
   display: block;

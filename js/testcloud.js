@@ -59,29 +59,31 @@
 
                 $(self.currentScreen()).css({
                     width: width,
-                    float: 'left',
-                    display: 'block'
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    overflow: 'hidden'
                 });
                 var nextScreen = $(self.createScreen()).css({
                     width: width,
-                    float: 'left',
                     display: 'block',
                     position: 'absolute',
                     top: 0,
                     // this could be a negative or positive
                     // depending on the transition
-                    left: width 
+                    left: width,
+                    overflow: 'hidden' 
                 });
                 if(!view.rendered) view.render();
                 header = new Header();
                 $(header.el).appendTo(nextScreen); 
                 $(nextScreen).append(view.el);
+                //$('#container').css({width: width});
 
                 $('#container').css({
-                    width: width * 2,
-                    '-webkit-transform' : 'translate3d(' + -1 * width + 'px,0,0)',
-                    '-webkit-transition' : '-webkit-transform .5s ease-out',
-                    'overflow': 'hidden'
+                    width: width,
+                    '-webkit-transform' : 'translate3d(-100%,0,0)',
+                    '-webkit-transition' : '-webkit-transform .5s ease-out'
                 });
                 console.log('transition start!');
                 $('#container').bind('webkitTransitionEnd', function(e){
@@ -583,7 +585,14 @@
         },
         render: function(){
             this.rendered = true;
+            var self = this;
             $(this.el).append(this.template(this.model.toJSON()));
+            $(this.el).swipeLeft(function(){
+                self.model.collection.select('next');
+            });
+            $(this.el).swipeRight(function(){
+                self.model.collection.select('previous');
+            });
             console.log('track meta rendered!');
             return this;   
         },

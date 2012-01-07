@@ -41,11 +41,12 @@
             });
 
         },
-        transitionTo: function(view){
+        transitionTo: function(view, direction){
             console.log('transition to', view);
             var width = $(window).width();
             var self = this;
             var header = self.header;
+            direction = direction || 1;
 
             if(!self.currentView){
                 console.log('no current view');
@@ -71,25 +72,33 @@
                     top: 0,
                     // this could be a negative or positive
                     // depending on the transition
-                    left: width,
+                    left: width * direction,
                     overflow: 'hidden' 
                 });
                 if(!view.rendered) view.render();
                 header = new Header();
                 $(header.el).appendTo(nextScreen); 
-                $(nextScreen).append(view.el);
+                $(nextScreen).append(view.el); 
+
                 //$('#container').css({width: width});
+
+                var trans = (direction === 1) ? '-100%' : '100%';
 
                 $('#container').css({
                     width: width,
-                    '-webkit-transform' : 'translate3d(-100%,0,0)',
+                    '-webkit-transform' : 'translate3d(' + trans + ',0,0)',
                     '-webkit-transition' : '-webkit-transform .5s ease-out'
                 });
                 console.log('transition start!');
                 $('#container').bind('webkitTransitionEnd', function(e){
                     if(e.srcElement === $('#container')[0]){
                         var container = $('#container')[0];
-                        container.removeChild(container.childNodes[0]);
+                        //if(direction === 1){
+                       //     container.removeChild(container.childNodes[0]);
+                       // } else {
+                       //     container.removeChild(container.childNodes[1]);
+                       // }
+                       container.removeChild(container.childNodes[0]);
                         $('#container').attr('style', '');
                         $('.screen').attr('style', '');
                         $('#container').unbind('webkitTransitionEnd');
@@ -102,8 +111,14 @@
                 });   
             }
         },
-        createScreen: function(){
-            var screen = $('<div class="screen">').appendTo('#container')[0];
+        createScreen: function(direction){
+            var screen;
+            screen = $('<div class="screen">').appendTo('#container')[0];
+            /*if(direction === 1){
+                screen = $('<div class="screen">').appendTo('#container')[0];
+            } else {
+                screen = $('<div class="screen">').prependTo('#container')[0];
+            }*/
             this.screens.push(screen);
             return screen;
         },
@@ -134,9 +149,18 @@
             // and check for a cached model
             console.log('track!!!');
             var track = app.tracks.get({'id':id});
-            if(app.trackDetail) delete app.trackDetail;
+            var trackIndex = app.tracks.models.indexOf(track);
+            var oldIndex;
+            var direction = 1;
+            if(app.trackDetail) {
+                oldIndex = app.tracks.models.indexOf(app.trackDetail.model);
+                if(oldIndex > trackIndex) {
+                    direction = -1;
+                }
+                delete app.trackDetail;
+            }
             app.trackDetail = new TrackDetail({model:track});
-            app.transitionTo(app.trackDetail);
+            app.transitionTo(app.trackDetail, direction);
        }
     });
 

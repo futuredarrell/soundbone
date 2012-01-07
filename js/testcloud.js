@@ -83,6 +83,7 @@
                     '-webkit-transition' : '-webkit-transform .5s ease-out',
                     'overflow': 'hidden'
                 });
+                console.log('transition start!');
                 $('#container').bind('webkitTransitionEnd', function(e){
                     if(e.srcElement === $('#container')[0]){
                         var container = $('#container')[0];
@@ -92,8 +93,9 @@
                         $('#container').unbind('webkitTransitionEnd');
                         self.screens = self.screens.slice(0,1);
                         view.trigger('transitionEnd');
+                        delete app.currentView;
                         app.currentView = view;
-                        header.update(view);  
+                        header.update(view);
                     }
                 });   
             }
@@ -259,22 +261,23 @@
             this.rendered = true;
             var self = this;
             $(this.el).append(this.template(this.model.toJSON()));
+            console.log('controls rendered!');
             return this;
         },
         events: {
-            'click #previous': 'previous',
-            'click #play': 'play',
-            'click #next': 'next'
-            /*'touchstart #previous': 'previous',
-            'touchstart #play': 'play',
-            'touchstart #next': 'next'*/
+            'click .previous': 'previous',
+            'click .play': 'play',
+            'click .next': 'next',
+            'touchstart .previous': 'previous',
+            'touchstart .play': 'play',
+            'touchstart .next': 'next'
         },
         updateControl: function(){
             console.log('update control ', this.status, this.model.stream.position);
             if(this.status === 'paused'){
-                $('#play').removeClass('pause');
+                this.$('.play').removeClass('pause');
             } else {
-                $('#play').addClass('pause');
+                this.$('.play').addClass('pause');
             }
         },
         updateTime: function(){
@@ -282,7 +285,7 @@
             var self = this;
 
             if(stream.playState === 1 && !stream.paused){
-                $('.track-current').html(self.formatTime(stream.position));
+                this.$('.track-current').html(self.formatTime(stream.position));
                 setTimeout(_.bind(self.updateTime, self), 900);
             }
         },
@@ -331,7 +334,7 @@
             return (minutes + ':' + seconds);
         },
         template: Templates.Controls,
-        id: 'controls',
+        className: 'controls',
         tagName: 'div',
         model: Track,
         initialize: function(){
@@ -344,7 +347,7 @@
             // against button hits while the 
             // track is buffering or loading
             track.bind('play', function(){
-                $('.track-duration').html(self.formatTime(self.model.get('duration')));
+                self.$('.track-duration').html(self.formatTime(self.model.get('duration')));
                 self.status = 'playing';
                 self.updateControl();
                 self.updateTime();
@@ -389,7 +392,7 @@
             //console.log(stream.bytesLoaded, stream.bytesTotal, stream.bytesTotal / stream.bytesLoaded)
             setTimeout(function(){
                 //console.log($(self.el).find('.scrubber-knob'));
-                $(self.el).find('.scrubber-knob').css({
+                this.$('.scrubber-knob').css({
                 '-webkit-transform': 'translate3d(100%, 0px, 0)',
                 '-webkit-transition-duration': (duration - position) / 1000 + 's'});
            }, 1);
@@ -399,7 +402,7 @@
             var stream = this.model.stream;
             var position = stream.position;
             var duration = this.model.attributes.duration;
-            $(this.el).find('.scrubber-knob').css({
+            this.$('.scrubber-knob').css({
                 '-webkit-transform': 'translate3d(' + (position/duration) * 100 + '%,0,0)',
                 '-webkit-transition-duration': '0s'});
         },
@@ -408,19 +411,19 @@
             var track = this.model;
             //console.log('scrubber render: ', track, this);
             $(this.el).html(self.template(track.toJSON()));
-            $(this.el).find('.scrubber-control').bind('touchstart', function(e){
+            this.$('.scrubber-control').bind('touchstart', function(e){
                e.preventDefault();
                self.pauseScrubber();
             });
-            $(this.el).find('.scrubber-control').bind('touchmove', function(e){
+            this.$('.scrubber-control').bind('touchmove', function(e){
                e.preventDefault();
                $(this).css({
                    '-webkit-transform': 'translate3d(' + e.touches[0].screenX + 'px,0,0)'
                });
             });
-            $(this.el).find('.scrubber-control').bind('touchend', function(e){
+            this.$('.scrubber-control').bind('touchend', function(e){
                 // touchend has changedtouches on iphone
-                // on android it may be different and we'll have to use touches like normal
+                // on android it may be different
                 e.preventDefault();
                 //console.log(this);
                 $(this).css({
@@ -436,13 +439,14 @@
                 self.model.stream.setPosition(newPos);
                 self.setScrubber(self.model.stream);
             });
+            console.log('scrubber rendered!');
             return this;
         },
         template: Templates.Scrubber
     });
 
     Header = Backbone.View.extend({
-        id: 'app-header',
+        className: 'app-header',
         tagName: 'header',
         initialize: function(){
             this.render();
@@ -456,10 +460,10 @@
             //accepts a view and takes its attributes
             var title = view.title || '';
             var headerRight = view.headerRight || '';
-            $('#header-title').html(title);
-            $('#header-right').html(headerRight);
+            this.$('.header-title').html(title);
+            this.$('.header-right').html(headerRight);
         },
-        template: _.template('<div id="header-left"></div><h1 id="header-title"></h1><div id="header-right"></div>')
+        template: _.template('<div class="header-left"></div><h1 class="header-title"></h1><div class="header-right"></div>')
     });
 
     TrackView = Backbone.View.extend({
@@ -524,14 +528,13 @@
     });
 
     TrackDetail = Backbone.View.extend({
-        id: 'trackDetail',
+        className: 'track-detail',
         tagName: 'div',
         headerRight: function(){
             var el = $('<a class="icon" href="#">♫</a>').bind('click', function(){
                 app.router.navigate('', true);
             });
             return el;
-          //_.template('<a class="icon" href="/TestCloud/">♫</a>'),  
         },
         initialize: function(){
             this.rendered = false;
@@ -573,7 +576,7 @@
     });
 
     TrackMeta = Backbone.View.extend({
-        id: 'trackMeta',
+        className: 'track-meta',
         tagName: 'div',
         initialize: function(){
             this.rendered = false;
@@ -581,6 +584,7 @@
         render: function(){
             this.rendered = true;
             $(this.el).append(this.template(this.model.toJSON()));
+            console.log('track meta rendered!');
             return this;   
         },
         template: Templates.TrackMeta,

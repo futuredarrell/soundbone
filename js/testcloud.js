@@ -16,7 +16,6 @@
 
             self.screens = [];
             self.createScreen();
-
             self.currentView = null;
 
             // fake activity stream
@@ -33,13 +32,7 @@
             // load tracks at this point
             _.each(self.stream, function(value, index){
                 self.tracks.add(new Track({'id': value}));
-                console.log('adding!', value);
-                if(index == 0){
-                    // autoplay
-                    // tracks.select(list[0]);
-                };
             });
-
         },
         transitionTo: function(view, direction){
             console.log('transition to', view);
@@ -49,7 +42,7 @@
             var trans = '';
             direction = direction || 1;
             trans = (direction === 1) ? '-100%' : '100%';
-            
+
             if(!self.currentView){
                 console.log('no current view');
                 self.currentView = view;
@@ -84,7 +77,6 @@
                     '-webkit-transform' : 'translate3d(' + trans + ',0,0)',
                     '-webkit-transition' : '-webkit-transform .5s ease-out'
                 });
-                window.scrollTo(0, 1);
                 $('#container').bind('webkitTransitionEnd', function(e){
                     if(e.srcElement === $('#container')[0]){
                         var container = $('#container')[0];
@@ -117,14 +109,8 @@
            'tracks/:id': 'track'
        },
        stream: function(){
-           if(app.home){
-                console.log('dont create new!');
-                app.transitionTo(app.home);
-           } else {
-                console.log('create new!!!');
-               app.home = new Home();
-               app.transitionTo(app.home);
-           }
+            app.home = app.home || new Home({collection: app.tracks});
+            app.transitionTo(app.home);
        },
        track: function(id){
             // in a larger app we would throw up a throbber here
@@ -155,26 +141,30 @@
             // trackview is loaded immediately
             // and then once trackview gets a
             // success or error it updates the view
-
             this.set({'selected' : false});
+            var self = this;
             if(this.localStorage.find(this)){
+                console.log('FOUND IN LOCAL STORAGE');
                 this.set(this.localStorage.find(this));
-                new TrackView({model: this});
+                this.set({loaded: true});
             } else {
+                console.log('TRACK INIT NOT FROM STORAGE');
                 var self = this;
                 SC.get('/tracks/' + self.id, function(data, error){
                     if(error) console.log('ERROR: ', error);
                     // set all the attributes locally
                     self.set(data);
                     self.save();
-                    new TrackView({model: data});
+                    self.trigger('loaded');
+                    self.set({loaded: true});
                 });
             }
         },
         play: function(){
             console.log('track play:', this, this.collection.currentTrack);
-            this.collection.currentTrack.destruct();
-            this.collection.currentTrack = this;
+            var col = this.collection;
+            if(col.currentTrack) col.currentTrack.destruct();
+            col.currentTrack = this;
             var stream = this.load();
             stream.play();
             this.set({'selected' : true});
@@ -224,14 +214,6 @@
 
     Tracks = Backbone.Collection.extend({
         model: Track,
-        initialize: function(){
-            this.bind('add', function(obj){
-                if(this.models.length == 1){
-                    //console.log('set first', obj);
-                    this.currentTrack = obj; 
-                }
-            })
-        },
         select: function(obj){
             var index;
             if(typeof obj === 'number'){
@@ -239,7 +221,6 @@
                     //quick turn into a number
                     if(+item.id == obj){
                         app.router.navigate('tracks/' + this.models[index].id, true);
-                        item.play();
                     }
                 });
             };
@@ -249,7 +230,6 @@
                 if(index > -1 && index <= this.models.length - 2){
                     index += 1;
                     app.router.navigate('tracks/' + this.models[index].id, true);
-                    this.models[index].play();
                 }
             }; 
             if(obj === 'previous'){
@@ -258,7 +238,6 @@
                 if(index > 0){
                     index -= 1;
                     app.router.navigate('tracks/' + this.models[index].id, true);
-                    this.models[index].play();
                 }
             };
         }
@@ -292,9 +271,11 @@
             var stream = this.model.stream;
             var self = this;
 
+            console.log('DURATION', stream.duration);
+
             if(stream.playState === 1 && !stream.paused){
                 this.$('.track-current').html(self.formatTime(stream.position));
-                setTimeout(_.bind(self.updateTime, self), 900);
+                setTimeout(_.bind(self.updateTime, self), 500);
             }
         },
         play: function(e){
@@ -480,9 +461,23 @@
         initialize: function(){
             this.rendered = false;
             var self = this;
+            console.log('this.model', this.model);
             this.model.bind('change', function(){
                 self.mark();
             });
+            if(this.model.get('loaded')){
+                console.log('ALREADY LOADED');
+                this.render();
+            } else {
+                this.throbber();
+                this.model.bind('loaded', function(){
+                    self.render(); 
+                });
+            }
+        },
+        throbber: function(){
+            $(this.el).append('<div>LOADING ...</div>');
+            return this;  
         },
         template: Templates.TrackView,
         mark: function(){
@@ -515,6 +510,7 @@
         title: '&#9729;',
         id: 'home',
         tagName: 'div',
+        collection: Tracks,
         initialize: function(){
             this.rendered = false;
         },
@@ -524,10 +520,11 @@
             screen.id = 'tracks';
             var trackView;
             var self = this;
-            _.each(app.tracks.models, function(model){
-                trackView = new TrackView({model: model});
-                trackView.render();
-                trackView.el.id = 'track-' + model.id;
+            console.log('HOME RENDER', app.tracks.models);
+            _.each(self.collection.models, function(model){
+                console.log(model);
+                trackView = new TrackView({model: new Track(model)});
+                //trackView.el.id = 'track-' + model.id;
                 trackView.el.className = 'track';
                 self.el.appendChild(trackView.el);
             });
@@ -547,21 +544,35 @@
         initialize: function(){
             this.rendered = false;
             var self = this;
+            
+            this.scrubber = new Scrubber({model: this.model});
+            this.controls = new Controls({model: this.model});
+            this.meta = new TrackMeta({model: this.model});
+            
+            if(this.model.get('loaded')){
+                console.log('ALREADY LOADED');
+                this.scrubber.render();
+                this.controls.render();
+                this.meta.render();
+                this.title = '' + this.model.get('title').slice(0, 16).concat(' ...');
+            } else {
+                var self = this;
+                this.model.bind('loaded', function(){
+                    self.scrubber.render();
+                    self.controls.render();
+                    self.meta.render();
+                    self.title = '' + self.model.get('title').slice(0, 16).concat(' ...');
+                    app.header.update(self);
+                });
+            }
+        },
+        throbber: function(){
+            $(this.el).html('<div>LOADING</div>'); 
         },
         render: function(){
             this.rendered = true;
             console.log('this.controls', this.controls);
             console.log('this.scrubber', this.scrubber);
-
-            this.title = '' + this.model.get('title').slice(0, 16).concat(' ...');
-
-            this.scrubber = new Scrubber({model: this.model});
-            this.controls = new Controls({model: this.model});
-            this.meta = new TrackMeta({model: this.model});
-            
-            this.scrubber.render();
-            this.controls.render();
-            this.meta.render();
             
             $(this.scrubber.el).appendTo(this.el);
             $(this.controls.el).appendTo(this.el);

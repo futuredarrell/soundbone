@@ -1,9 +1,27 @@
 (function () {
 
-    var soundbone, Tracks, Track, Controls, TrackView, Scrubber, App, app, Router, Screen,
-        Home, TrackDetail, Header, Comments,
-        activate = ('createTouch' in document) ? 'touchstart' : 'click',
-        hasTouch = ('createTouch' in document) ? true : false;
+    var soundbone
+      // a larger view class that manages transitions
+      // and all the other subvies
+      , App
+      // this is an exposed instance of our app
+      , app
+      , Router
+      // our collection of tracks
+      , Tracks
+      // a single track model
+      , Track
+      // the only view with View until I can think of better
+      , TrackView
+      // view modules
+      , Home
+      , Controls
+      , Scrubber
+      , Screen
+      , TrackDetail
+      , Header
+      , Comments
+      , hasTouch = ('createTouch' in document) ? true : false;
 
     window.soundbone = soundbone = {};
 
@@ -12,6 +30,7 @@
 
             var self = this;
 
+            // prepare screens that can be transitioned between
             self.screens = [];
             self.createScreen();
             self.currentView = null;
@@ -28,6 +47,8 @@
             };
 
             // load tracks at this point
+            // in a non-prototype this could happen in
+            // many different ways
             _.each(self.stream, function(value, index){
                 self.tracks.add(new Track({'id': value}));
             });
@@ -42,7 +63,9 @@
             trans = (direction === 1) ? '-100%' : '100%';
 
             if(!self.currentView){
-               // console.log('no current view');
+                // no current view has been set
+                // most likely first load so no transition 
+                // console.log('no current view');
                 self.currentView = view;
                 view.render();
                 $(header.el).appendTo(self.currentScreen());
@@ -76,6 +99,8 @@
                     '-webkit-transition' : '-webkit-transform .5s ease-out'
                 });
                 $('#container').bind('webkitTransitionEnd', function(e){
+                    //its possible there could be other webkit transitions
+                    //so lets make sure this is from the container
                     if(e.srcElement === $('#container')[0]){
                         var container = $('#container')[0];
                         container.removeChild(container.childNodes[0]);
@@ -119,6 +144,8 @@
             var oldIndex;
             var direction = 1;
             if(app.trackDetail) {
+                //already a trackDetail view so choose an
+                //appropriate transition direction
                 oldIndex = app.tracks.models.indexOf(app.trackDetail.model);
                 if(oldIndex > trackIndex) {
                     direction = -1;
@@ -177,8 +204,12 @@
             } else {
                 return this.stream = SC.stream(this.id, {
                     onplay: function(){
+                        // we want to fire onplay when the track is
+                        // actually playing and sound is going
+                        // so we wait a small amount of time
+                        // and then trigger our own event
                         this.onposition(100, function(){
-                            //console.log('stream reached 10');
+                            //console.log('stream reached 100');
                             self.trigger('play');
                         }); 
                     },
@@ -198,7 +229,6 @@
             }
         },
         destruct: function(){
-            //if(self.timer) clearInterval(self.timer);
             if(this.stream) {
                 this.stream.destruct();
             } else {
@@ -248,6 +278,9 @@
             return this;
         },
         events: {
+            // not all of these are necessary
+            // the clicks help testing
+            // and can be removed easily
             'click .previous': 'previous',
             'click .play': 'play',
             'click .next': 'next',
@@ -498,6 +531,7 @@
     });
 
     Home = Backbone.View.extend({
+        // cloud unicode
         title: '&#9729;',
         id: 'home',
         tagName: 'div',
@@ -524,7 +558,8 @@
         className: 'track-detail',
         tagName: 'div',
         headerRight: function(){
-            var el = $('<a class="icon" href="#">♫</a>').bind('click', function(){
+            // music notes unicode
+            var el = $('<a class="icon" href="#">&#9835;</a>').bind('click', function(){
                 app.router.navigate('', true);
             });
             return el;
@@ -553,7 +588,8 @@
             this.title = '' + this.model.get('title').slice(0, 16).concat(' ...');
         },
         throbber: function(){
-            $(this.el).html('<div>LOADING</div>'); 
+            // seen rarely
+            $(this.el).html('<div>Loading ...</div>'); 
         },
         render: function(){
             this.rendered = true;
@@ -587,10 +623,10 @@
 
             $(this.el).append(this.template(this.model.toJSON()));
 
+            // for lazy soundclouders who dont add artwork
             if(!this.model.get('artwork_url')){
                 this.$('.meta-image').html('<div class="meta-placeholder"></div>');
             }
-
             $(this.el).swipeLeft(function(){
                 self.model.collection.select('next');
             });
@@ -609,6 +645,8 @@
         model: Track,
         initialize: function(){
             this.offset = 0;
+            // arbitary and maybe better
+            // placed in app settings
             this.limit = 20;
         },
         render: function(){
@@ -640,12 +678,15 @@
             } else {
                 $('.load-comments').html('Load More Comments');
             }
+            // could move this template as a jst
+            // TODO when a better build script is done
             var template = _.template('<div id="comment-<%= id %>" class="comment"><p><%= body %></p><div class="comment-meta"><%= user.username %><img src="<%= user.avatar_url %>" width="20" height="20" /></div></div>');
             _.each(data, function(obj){
                 $('.load-comments').before(template(obj));
             });
         },
-        template: _.template('<a href="javascript: void(0)" class="load-comments">Load Comments</a>')
+        // this template is whacky and needs to be built better when there is more time
+        template: _.template('<a href="javascript:void(0)" class="load-comments">Load Comments</a>')
     });
 
     soundbone.init = function(){

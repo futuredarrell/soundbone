@@ -21,8 +21,8 @@
 
             // fake activity stream
             //self.stream = [5968824];
-            self.stream = [5968824, 4456728, 291];
-            //self.stream = [5968824, 4456728, 291, 31359980, 28377811, 25715240, 28925819, 28768833];
+            //self.stream = [5968824, 4456728, 291];
+            self.stream = [5968824, 4456728, 291, 31359980, 28377811, 25715240, 28925819, 28768833];
             self.tracks = new Tracks();
             self.header = new Header();
 
@@ -46,8 +46,10 @@
             var width = $(window).width();
             var self = this;
             var header = self.header;
+            var trans = '';
             direction = direction || 1;
-
+            trans = (direction === 1) ? '-100%' : '100%';
+            
             if(!self.currentView){
                 console.log('no current view');
                 self.currentView = view;
@@ -57,7 +59,6 @@
                 $(view.el).appendTo(self.currentScreen());
                 return false;
             } else {
-
                 $(self.currentScreen()).css({
                     width: width,
                     position: 'absolute',
@@ -70,43 +71,31 @@
                     display: 'block',
                     position: 'absolute',
                     top: 0,
-                    // this could be a negative or positive
-                    // depending on the transition
                     left: width * direction,
                     overflow: 'hidden' 
                 });
                 if(!view.rendered) view.render();
                 header = new Header();
+                header.update(view);
                 $(header.el).appendTo(nextScreen); 
                 $(nextScreen).append(view.el); 
-
-                //$('#container').css({width: width});
-
-                var trans = (direction === 1) ? '-100%' : '100%';
-
                 $('#container').css({
                     width: width,
                     '-webkit-transform' : 'translate3d(' + trans + ',0,0)',
                     '-webkit-transition' : '-webkit-transform .5s ease-out'
                 });
-                console.log('transition start!');
+                window.scrollTo(0, 1);
                 $('#container').bind('webkitTransitionEnd', function(e){
                     if(e.srcElement === $('#container')[0]){
                         var container = $('#container')[0];
-                        //if(direction === 1){
-                       //     container.removeChild(container.childNodes[0]);
-                       // } else {
-                       //     container.removeChild(container.childNodes[1]);
-                       // }
-                       container.removeChild(container.childNodes[0]);
+                        container.removeChild(container.childNodes[0]);
                         $('#container').attr('style', '');
                         $('.screen').attr('style', '');
                         $('#container').unbind('webkitTransitionEnd');
                         self.screens = self.screens.slice(0,1);
                         view.trigger('transitionEnd');
-                        delete app.currentView;
-                        app.currentView = view;
-                        header.update(view);
+                        delete self.currentView;
+                        self.currentView = view;
                     }
                 });   
             }
@@ -114,11 +103,6 @@
         createScreen: function(direction){
             var screen;
             screen = $('<div class="screen">').appendTo('#container')[0];
-            /*if(direction === 1){
-                screen = $('<div class="screen">').appendTo('#container')[0];
-            } else {
-                screen = $('<div class="screen">').prependTo('#container')[0];
-            }*/
             this.screens.push(screen);
             return screen;
         },
@@ -133,8 +117,6 @@
            'tracks/:id': 'track'
        },
        stream: function(){
-           //console.log('stream!', app);
-           //console.log('app.home!!', app.home);
            if(app.home){
                 console.log('dont create new!');
                 app.transitionTo(app.home);

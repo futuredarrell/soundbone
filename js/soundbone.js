@@ -2,12 +2,12 @@
 // When ready...
 (function () {
 
-    var TestCloud, Tracks, Track, Controls, TrackView, Scrubber, App, app, Router, Screen,
+    var soundbone, Tracks, Track, Controls, TrackView, Scrubber, App, app, Router, Screen,
         Home, TrackDetail, Header, Comments,
         activate = ('createTouch' in document) ? 'touchstart' : 'click',
         hasTouch = ('createTouch' in document) ? true : false;
 
-    window.TestCloud = TestCloud = {};
+    window.soundbone = soundbone = {};
 
     App = Backbone.View.extend({
         initialize: function(){
@@ -20,8 +20,8 @@
 
             // fake activity stream
             //self.stream = [5968824];
-            //self.stream = [5968824, 4456728, 291];
-            self.stream = [5968824, 4456728, 291, 31359980, 28377811, 25715240, 28925819, 28768833];
+            self.stream = [5968824, 4456728, 291];
+            //self.stream = [5968824, 4456728, 291, 31359980, 28377811, 25715240, 28925819, 28768833];
             self.tracks = new Tracks();
             self.header = new Header();
 
@@ -224,7 +224,7 @@
                 });
             };
             if(obj === 'next'){
-                console.log('next')
+                //console.log('next')
                 index = this.models.indexOf(this.currentTrack);
                 if(index > -1 && index <= this.models.length - 2){
                     index += 1;
@@ -232,7 +232,7 @@
                 }
             }; 
             if(obj === 'previous'){
-                console.log('previous')
+                //console.log('previous')
                 index = this.models.indexOf(this.currentTrack);
                 if(index > 0){
                     index -= 1;
@@ -280,7 +280,7 @@
                 '-webkit-transition-duration': '.9s'});
             }*/
             if(stream.playState === 1 && !stream.paused){
-                console.log(self.formatTime(stream.position));
+                //console.log(self.formatTime(stream.position));
                 this.$('.track-current').html(self.formatTime(self.model.stream.position));
                 setTimeout(_.bind(self.updateTime, self), 900);
             }
@@ -629,7 +629,7 @@
             SC.get('/tracks/' + self.model.id + '/comments', {limit: 20, offset: self.offset}, function(data, error){
                 var el = $('#track-' + self.model.id + '-comments')[0];
                 $('#track-' + self.model.id + '-comments')[0].parentNode.removeChild(el);
-                if(error) console.log('ERROR: ', error);
+                if(error) alert('ERROR: ', error);
                 self.offset += self.limit;
                 self.update(data);
             });
@@ -650,10 +650,10 @@
         template: _.template('<a href="javascript: void(0)" class="load-comments">Load Comments</a>')
     });
 
-    TestCloud.init = function(){
+    soundbone.init = function(){
         app = new App();
         app.router = new Router();
-        Backbone.history.start({root: '/TestCloud/'});
+        Backbone.history.start({root: '/soundbone/'});
     };
 })();
 

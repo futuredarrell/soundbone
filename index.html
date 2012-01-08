@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
 
-  <title>SoundBone</title>
+  <title>soundbone</title>
   <meta name="description" content="">
   <meta name="author" content="">
 
@@ -20,7 +20,7 @@
   <script type="text/javascript" src="js/zepto-0.8/zepto.js"></script>
   <script type="text/javascript" src="js/backbone-0.5.3/backbone.js"></script>
   <script type="text/javascript" src="js/backbone-localStorage.js"></script>
-  <script type="text/javascript" src="js/testcloud.js"></script>
+  <script type="text/javascript" src="js/soundbone.js"></script>
   <script src="http://connect.soundcloud.com/sdk.js" type="text/JavaScript"></script>
   <script type="text/JavaScript">
     SC.initialize({
@@ -28,7 +28,7 @@
       //, redirect_uri: "http://example.com/callback.html",
     });
     SC.whenStreamingReady(function(){
-      TestCloud.init();
+      soundbone.init();
     });
   </script>
 </body>

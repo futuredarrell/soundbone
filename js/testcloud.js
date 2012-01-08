@@ -35,7 +35,7 @@
             });
         },
         transitionTo: function(view, direction){
-            console.log('transition to', view);
+           // console.log('transition to', view);
             var width = $(window).width();
             var self = this;
             var header = self.header;
@@ -44,7 +44,7 @@
             trans = (direction === 1) ? '-100%' : '100%';
 
             if(!self.currentView){
-                console.log('no current view');
+               // console.log('no current view');
                 self.currentView = view;
                 view.render();
                 $(header.el).appendTo(self.currentScreen());
@@ -115,7 +115,7 @@
        track: function(id){
             // in a larger app we would throw up a throbber here
             // and check for a cached model
-            console.log('track!!!');
+            //console.log('track!!!');
             var track = app.tracks.get({'id':id});
             var trackIndex = app.tracks.models.indexOf(track);
             var oldIndex;
@@ -144,12 +144,11 @@
             this.set({'selected' : false});
             var self = this;
             if(this.localStorage.find(this)){
-                console.log('FOUND IN LOCAL STORAGE');
+                //console.log('FOUND IN LOCAL STORAGE');
                 this.set(this.localStorage.find(this));
                 this.set({loaded: true});
             } else {
-                console.log('TRACK INIT NOT FROM STORAGE');
-                var self = this;
+                //console.log('TRACK INIT NOT FROM STORAGE');
                 SC.get('/tracks/' + self.id, function(data, error){
                     if(error) console.log('ERROR: ', error);
                     // set all the attributes locally
@@ -161,7 +160,7 @@
             }
         },
         play: function(){
-            console.log('track play:', this, this.collection.currentTrack);
+            //console.log('track play:', this, this.collection.currentTrack);
             var col = this.collection;
             if(col.currentTrack) col.currentTrack.destruct();
             col.currentTrack = this;
@@ -181,7 +180,7 @@
                 return this.stream = SC.stream(this.id, {
                     onplay: function(){
                         this.onposition(100, function(){
-                            console.log('stream reached 10');
+                            //console.log('stream reached 10');
                             self.trigger('play');
                         }); 
                     },
@@ -189,7 +188,7 @@
                         self.collection.select('next');
                         self.trigger('finish');
                         self.destruct();
-                        console.log('destroying track');
+                        //console.log('destroying track');
                     },
                     onpause: function(){
                         self.trigger('pause');
@@ -205,7 +204,7 @@
             if(this.stream) {
                 this.stream.destruct();
             } else {
-                console.log('no stream to destruct!');
+                //console.log('no stream to destruct!');
             }
             this.trigger('destruct');
             this.set({'selected': false});
@@ -247,8 +246,7 @@
         render: function(){
             this.rendered = true;
             var self = this;
-            $(this.el).append(this.template(this.model.toJSON()));
-            console.log('controls rendered!');
+            $(this.el).append(self.template(self.model.toJSON()));
             return this;
         },
         events: {
@@ -260,7 +258,6 @@
             'touchstart .next': 'next'
         },
         updateControl: function(){
-            console.log('update control ', this.status, this.model.stream.position);
             if(this.status === 'paused'){
                 this.$('.play').removeClass('pause');
             } else {
@@ -270,12 +267,22 @@
         updateTime: function(){
             var stream = this.model.stream;
             var self = this;
+            /*
+            it turns out bytesLoaded and bytesTotal aren't reliable properties
+            with soundmanager on ios - they dont update to a full 100%
+            unfortunate as i would like to have a visual marker of how much of the
+            track is loaded
 
-            console.log('DURATION', stream.duration);
-
+            if(stream){
+                console.log(stream.bytesLoaded / stream.bytesTotal * 100);
+                $('.scrubber-duration').css({
+                '-webkit-transform': 'translate3d(' +  stream.bytesLoaded / stream.bytesTotal * 100 + '%,0,0)',
+                '-webkit-transition-duration': '.9s'});
+            }*/
             if(stream.playState === 1 && !stream.paused){
-                this.$('.track-current').html(self.formatTime(stream.position));
-                setTimeout(_.bind(self.updateTime, self), 500);
+                console.log(self.formatTime(stream.position));
+                this.$('.track-current').html(self.formatTime(self.model.stream.position));
+                setTimeout(_.bind(self.updateTime, self), 900);
             }
         },
         play: function(e){
@@ -284,24 +291,20 @@
             switch(this.status){
                 case 'playing':
                     this.status = 'paused';
-                    console.log('CASE PLAYING');
                     track.pause();
                     this.updateControl();
                 break;
                 case 'paused':
                     this.status = 'resumed';
-                    console.log('CASE PAUSED');
                     track.pause();
                     this.updateControl();
                 break;
                 case 'resumed':
-                    console.log('CASE RESUMED');
                     this.status = 'playing';
                     track.pause();
                     this.updateControl();
                 break;
                 default:
-                    console.log(status, ' DEFAULT so play track!');
                     track.play();
                     this.updateControl();
                 break;
@@ -369,7 +372,7 @@
                 self.setScrubber();
             });
             this.model.bind('finish', function(){
-                console.log('track finish from scrubber');
+                //console.log('track finish from scrubber');
             });
         },
         setScrubber: function(){
@@ -378,10 +381,14 @@
             var stream = self.model.stream;
             var duration = self.model.attributes.duration;
             var position = stream.position || 0;
-            //console.log(stream.bytesLoaded, stream.bytesTotal, stream.bytesTotal / stream.bytesLoaded)
+
+            this.$('.scrubber-knob').css({
+                '-webkit-transform': 'translate3d(' + (position/duration) * 100 + '%,0,0)',
+                '-webkit-transition-duration': '0s'});
+            
             setTimeout(function(){
                 //console.log($(self.el).find('.scrubber-knob'));
-                this.$('.scrubber-knob').css({
+                self.$('.scrubber-knob').css({
                 '-webkit-transform': 'translate3d(100%, 0px, 0)',
                 '-webkit-transition-duration': (duration - position) / 1000 + 's'});
            }, 1);
@@ -398,37 +405,32 @@
         render: function(){
             var self = this;
             var track = this.model;
-            //console.log('scrubber render: ', track, this);
             $(this.el).html(self.template(track.toJSON()));
-            this.$('.scrubber-control').bind('touchstart', function(e){
+            $(this.el).bind('touchstart', function(e){
                e.preventDefault();
                self.pauseScrubber();
             });
-            this.$('.scrubber-control').bind('touchmove', function(e){
+            $(this.el).bind('touchmove', function(e){
                e.preventDefault();
-               $(this).css({
-                   '-webkit-transform': 'translate3d(' + e.touches[0].screenX + 'px,0,0)'
+               self.$('.scrubber-knob').css({
+                   '-webkit-transform': 'translate3d(' + e.touches[0].clientX + 'px,0,0)'
                });
             });
-            this.$('.scrubber-control').bind('touchend', function(e){
+            console.log('STREAMABLE', self.model.get('streamable'));
+            $(this.el).bind('touchend', function(e){
                 // touchend has changedtouches on iphone
                 // on android it may be different
                 e.preventDefault();
-                //console.log(this);
-                $(this).css({
-                   '-webkit-transform': 'translate3d(' + e.changedTouches[0].screenX + 'px,0,0)'
-                });
 
-                var pos = e.changedTouches[0].screenX;
+                var pos = e.changedTouches[0].clientX;
                 var width = window.innerWidth;
                 var duration = self.model.attributes.duration;
                 
                 //position * duration / width
                 var newPos = Math.round((pos * duration) / width);
                 self.model.stream.setPosition(newPos);
-                self.setScrubber(self.model.stream);
+                self.setScrubber();
             });
-            console.log('scrubber rendered!');
             return this;
         },
         template: Templates.Scrubber
@@ -461,12 +463,12 @@
         initialize: function(){
             this.rendered = false;
             var self = this;
-            console.log('this.model', this.model);
+            //console.log('this.model', this.model);
             this.model.bind('change', function(){
                 self.mark();
             });
             if(this.model.get('loaded')){
-                console.log('ALREADY LOADED');
+                //console.log('ALREADY LOADED');
                 this.render();
             } else {
                 this.throbber();
@@ -491,7 +493,6 @@
         render: function(){
             var self = this;
             this.rendered = true;
-            //console.log('TRACK RENDER THIS: ', this, this.el);
             //changes details of track, play icon
             $(this.el).html(this.template(this.model.toJSON()));
 
@@ -520,11 +521,8 @@
             screen.id = 'tracks';
             var trackView;
             var self = this;
-            console.log('HOME RENDER', app.tracks.models);
             _.each(self.collection.models, function(model){
-                console.log(model);
                 trackView = new TrackView({model: new Track(model)});
-                //trackView.el.id = 'track-' + model.id;
                 trackView.el.className = 'track';
                 self.el.appendChild(trackView.el);
             });
@@ -542,50 +540,43 @@
             return el;
         },
         initialize: function(){
-            this.rendered = false;
             var self = this;
-            
+            this.rendered = false;
+
             this.scrubber = new Scrubber({model: this.model});
             this.controls = new Controls({model: this.model});
             this.meta = new TrackMeta({model: this.model});
             
             if(this.model.get('loaded')){
-                console.log('ALREADY LOADED');
-                this.scrubber.render();
-                this.controls.render();
-                this.meta.render();
-                this.title = '' + this.model.get('title').slice(0, 16).concat(' ...');
+                this.renderSubViews();
             } else {
-                var self = this;
                 this.model.bind('loaded', function(){
-                    self.scrubber.render();
-                    self.controls.render();
-                    self.meta.render();
-                    self.title = '' + self.model.get('title').slice(0, 16).concat(' ...');
+                    self.renderSubViews();
                     app.header.update(self);
                 });
             }
+        },
+        renderSubViews: function(){
+            this.scrubber.render();
+            this.controls.render();
+            this.meta.render();
+            this.title = '' + this.model.get('title').slice(0, 16).concat(' ...');
         },
         throbber: function(){
             $(this.el).html('<div>LOADING</div>'); 
         },
         render: function(){
             this.rendered = true;
-            console.log('this.controls', this.controls);
-            console.log('this.scrubber', this.scrubber);
-            
+
             $(this.scrubber.el).appendTo(this.el);
             $(this.controls.el).appendTo(this.el);
             $(this.meta.el).appendTo(this.el);
 
             if(this.model.get('comment_count') > 0) {
-              console.log('comment count', this.model.get('comment_count'));
-              this.comments = new Comments({model: this.model});
-              this.comments.render();
-              $(this.comments.el).appendTo(this.el);
+                this.comments = new Comments({model: this.model});
+                this.comments.render();
+                $(this.comments.el).appendTo(this.el);
             };
-
-            // other view stuff here
 
             // decide if autoplay or not
             if(app.settings.autoplay) this.model.play();
@@ -610,7 +601,6 @@
             $(this.el).swipeRight(function(){
                 self.model.collection.select('previous');
             });
-            console.log('track meta rendered!');
             return this;   
         },
         template: Templates.TrackMeta,
@@ -666,11 +656,11 @@
     });
 
     TestCloud.init = function(){
-        console.log('init');
+        //console.log('init');
         app = new App();
         app.router = new Router();
         Backbone.history.start({root: '/TestCloud/'});
-        console.log(app);
+       // console.log(app);
     };
 })();
 

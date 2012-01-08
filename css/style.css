@@ -190,7 +190,7 @@ html[xmlns] .clearfix {
   background-image: -webkit-linear-gradient(top, #a7a7a7, #cacaca);
   position: relative;
 }
-.scrubber-knob {
+.scrubber-knob, .scrubber-duration {
   height: 50px;
   width: 100%;
   display: block;
@@ -199,7 +199,7 @@ html[xmlns] .clearfix {
   opacity: 0.5;
   -webkit-transition-timing-function: linear;
 }
-.scrubber-control {
+.scrubber-control, .duration-marker {
   width: 100%;
   height: 50px;
   display: block;
@@ -207,6 +207,9 @@ html[xmlns] .clearfix {
   top: 0;
   left: -100%;
   background: #ff2a00;
+}
+.duration-marker {
+  opacity: 0.25;
 }
 /* Controls */
 .track-playback {

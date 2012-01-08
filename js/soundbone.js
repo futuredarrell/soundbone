@@ -649,7 +649,7 @@
     });
 
     soundbone.init = function(){
-        app = new App();
+        soundbone.app = app = new App();
         app.router = new Router();
         Backbone.history.start({root: '/soundbone/'});
     };

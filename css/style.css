@@ -287,19 +287,15 @@ html[xmlns] .clearfix {
 .meta-image {
   background: #eee;
   text-align: center;
-  height: 250px;
+  height: 225px;
   display: block;
   margin: 0 auto;
   padding-top: 25px;
-  /*img {
-		padding-top: 25px;
-	}*/
-
 }
 .meta-placeholder {
   display: block;
-  width: 225px;
-  height: 225px;
+  width: 200px;
+  height: 200px;
   margin: 0 auto;
   background-color: #cacaca;
   background-repeat: repeat-x;

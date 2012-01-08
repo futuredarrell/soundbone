@@ -363,19 +363,16 @@
         initialize: function(){            
             var self = this;
             this.model.bind('play', function(){
-                self.setScrubber(); 
+                self.position(); 
             });
             this.model.bind('pause', function(){
-                self.pauseScrubber();
+                self.pause();
             });
             this.model.bind('resume', function(){
-                self.setScrubber();
-            });
-            this.model.bind('finish', function(){
-                //console.log('track finish from scrubber');
+                self.position();
             });
         },
-        setScrubber: function(){
+        position: function(){
             //console.log('set scrubber!');
             var self = this;
             var stream = self.model.stream;
@@ -393,8 +390,7 @@
                 '-webkit-transition-duration': (duration - position) / 1000 + 's'});
            }, 1);
         },
-        pauseScrubber: function(){
-            //console.log('pause scrubber!');
+        pause: function(){
             var stream = this.model.stream;
             var position = stream.position;
             var duration = this.model.attributes.duration;
@@ -408,7 +404,7 @@
             $(this.el).html(self.template(track.toJSON()));
             $(this.el).bind('touchstart', function(e){
                e.preventDefault();
-               self.pauseScrubber();
+               self.pause();
             });
             $(this.el).bind('touchmove', function(e){
                e.preventDefault();
@@ -416,20 +412,18 @@
                    '-webkit-transform': 'translate3d(' + e.touches[0].clientX + 'px,0,0)'
                });
             });
-            console.log('STREAMABLE', self.model.get('streamable'));
             $(this.el).bind('touchend', function(e){
                 // touchend has changedtouches on iphone
                 // on android it may be different
-                e.preventDefault();
-
                 var pos = e.changedTouches[0].clientX;
                 var width = window.innerWidth;
                 var duration = self.model.attributes.duration;
-                
-                //position * duration / width
                 var newPos = Math.round((pos * duration) / width);
+
+                e.preventDefault();
+
                 self.model.stream.setPosition(newPos);
-                self.setScrubber();
+                self.position();
             });
             return this;
         },
@@ -463,12 +457,10 @@
         initialize: function(){
             this.rendered = false;
             var self = this;
-            //console.log('this.model', this.model);
             this.model.bind('change', function(){
                 self.mark();
             });
             if(this.model.get('loaded')){
-                //console.log('ALREADY LOADED');
                 this.render();
             } else {
                 this.throbber();
@@ -633,10 +625,6 @@
                 var el = $('#track-' + self.model.id + '-comments')[0];
                 $('#track-' + self.model.id + '-comments')[0].parentNode.removeChild(el);
                 if(error) console.log('ERROR: ', error);
-                console.log('COMMENTS DATA: ', data);
-                // set all the attributes locally
-                //self.set(data);
-                //self.save();
                 self.update(data);
                 self.offset += self.limit;
             });
@@ -656,11 +644,9 @@
     });
 
     TestCloud.init = function(){
-        //console.log('init');
         app = new App();
         app.router = new Router();
         Backbone.history.start({root: '/TestCloud/'});
-       // console.log(app);
     };
 })();
 

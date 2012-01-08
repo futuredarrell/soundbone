@@ -103,33 +103,18 @@ html[xmlns] .clearfix {
 }
 
 #container {
-	//display: block;
 	position: relative;
 }
 
-.screen {
-	display: block;
-	float: left;
-	width: 100%;
-	background: #eee;
-}
-.screen:after {
-	content: ".";
-	display: block;
-	clear: both;
-	visibility: hidden;
-	line-height: 0;
-	height: 0;
-}
+.track {
+	background: #fff;
+	padding: 12px 10px;
+	color: #000;
+	position: relative;
 
-.slide-left {
-	-webkit-transform: translate3d(-320px,0,0);
-	-webkit-transition: all .5s ease-out;
-}
-
-.track{background: #fff; padding: 12px 10px; color: #000; position: relative;}
-.track:nth-child(even){
-	background: @SCblue;
+	&:nth-child(even) {
+		background: @SCblue;
+	}
 }
 .track-title{
 	font-size: 14px;
@@ -144,13 +129,15 @@ html[xmlns] .clearfix {
 	color: #fff;
 }
 
-.scrubber{
+// Scrubber
+
+.scrubber {
 	height: 50px;
 	display: block;
 	.gradient;
 	position: relative;
 }
-.scrubber-knob, .scrubber-duration{
+.scrubber-knob, .scrubber-duration {
 	height:50px;
 	width: 100%;
 	display: block;
@@ -159,7 +146,7 @@ html[xmlns] .clearfix {
 	opacity: 0.5;
 	-webkit-transition-timing-function: linear;
 }
-.scrubber-control, .duration-marker{
+.scrubber-control, .duration-marker {
 	width: 100%;
 	height: 50px;
 	display: block;
@@ -169,9 +156,7 @@ html[xmlns] .clearfix {
 	background: #ff2a00;
 }
 .duration-marker {
-	//border-right: 3px solid #000;
 	opacity: 0.25;
-	//background: #eee;
 }
 
 /* Controls */
@@ -260,7 +245,6 @@ html[xmlns] .clearfix {
 .track-meta {
 	clear: both;
 	background: #fff;
-	//padding: 20px;
 }
 .meta-title, .meta-comments {
 	font-size: 18px;
@@ -277,17 +261,23 @@ html[xmlns] .clearfix {
 	height: 250px;
 	display: block;
 	margin: 0 auto;
-
-	img {
+	padding-top: 25px;
+	/*img {
 		padding-top: 25px;
-	}
+	}*/
+}
+.meta-placeholder {
+	display: block;
+	width: 225px;
+	height: 225px;
+	margin: 0 auto;
+	.gradient;
 }
 .track-comments {
 	background: #fff;
 	padding: 20px;
 	.comment {
 		clear: both;
-		//border-bottom: 1px solid #eee;
 		padding-bottom: 10px;
 		margin-bottom: 35px;
 		p {
@@ -301,6 +291,7 @@ html[xmlns] .clearfix {
 	}
 }
 
+/* Comments */
 .comment
 {
 	position: relative;
@@ -342,6 +333,24 @@ html[xmlns] .clearfix {
 	img {
 		float: right;
 		margin-left: 5px;
+	}
+}
+.load-comments {
+	background: #eee;
+	.gradient(@greyTop, @greyBottom);
+	padding: 15px;
+	text-align: center;
+	text-decoration: none;
+	display: block;
+	margin: 0 auto;
+	.border-radius;
+	font-family: 'Helvetica Neue', Helvetica, sans-serif;
+	font-size: 14px;
+	color: #333;
+	padding-top: 15px;
+
+	&:active {
+		.gradient(@greyBottom, @greyTop);
 	}
 }
 

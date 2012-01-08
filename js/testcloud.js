@@ -586,7 +586,13 @@
         render: function(){
             this.rendered = true;
             var self = this;
+
             $(this.el).append(this.template(this.model.toJSON()));
+
+            if(!this.model.get('artwork_url')){
+                this.$('.meta-image').html('<div class="meta-placeholder"></div>');
+            }
+
             $(this.el).swipeLeft(function(){
                 self.model.collection.select('next');
             });
@@ -617,27 +623,28 @@
         },
         load: function(e){
             var self = this;
-            e.preventDefault();
-            console.log('LOAD COMMENTS');
+            e.preventDefault();;
             $(self.el).append('<div id="track-' + self.model.id + '-comments" class="loading">Loading ... </div>');
             var self = this;
             SC.get('/tracks/' + self.model.id + '/comments', {limit: 20, offset: self.offset}, function(data, error){
                 var el = $('#track-' + self.model.id + '-comments')[0];
                 $('#track-' + self.model.id + '-comments')[0].parentNode.removeChild(el);
                 if(error) console.log('ERROR: ', error);
-                self.update(data);
                 self.offset += self.limit;
+                self.update(data);
             });
         },
         update: function(data){
-            //update ui, save comments to storage
+            //update ui
             var self = this;
-            //var el = $('#track-' + self.model.id + '-comments');
-            $('.load-comments').html('Load 20 More Comments');
+            if(this.offset >= self.model.get('comment_count')){
+               $('.load-comments').hide();
+            } else {
+                $('.load-comments').html('Load More Comments');
+            }
             var template = _.template('<div id="comment-<%= id %>" class="comment"><p><%= body %></p><div class="comment-meta"><%= user.username %><img src="<%= user.avatar_url %>" width="20" height="20" /></div></div>');
             _.each(data, function(obj){
                 $('.load-comments').before(template(obj));
-                //$('#track-' + self.model.id + '-comments').append(template(obj));
             });
         },
         template: _.template('<a href="javascript: void(0)" class="load-comments">Load Comments</a>')

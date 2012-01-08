@@ -142,24 +142,6 @@ html[xmlns] .clearfix {
 #container {
   position: relative;
 }
-.screen {
-  display: block;
-  float: left;
-  width: 100%;
-  background: #eee;
-}
-.screen:after {
-  content: ".";
-  display: block;
-  clear: both;
-  visibility: hidden;
-  line-height: 0;
-  height: 0;
-}
-.slide-left {
-  -webkit-transform: translate3d(-320px, 0, 0);
-  -webkit-transition: all 0.5s ease-out;
-}
 .track {
   background: #fff;
   padding: 12px 10px;
@@ -308,9 +290,21 @@ html[xmlns] .clearfix {
   height: 250px;
   display: block;
   margin: 0 auto;
-}
-.meta-image img {
   padding-top: 25px;
+  /*img {
+		padding-top: 25px;
+	}*/
+
+}
+.meta-placeholder {
+  display: block;
+  width: 225px;
+  height: 225px;
+  margin: 0 auto;
+  background-color: #cacaca;
+  background-repeat: repeat-x;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #a7a7a7), color-stop(100%, #cacaca));
+  background-image: -webkit-linear-gradient(top, #a7a7a7, #cacaca);
 }
 .track-comments {
   background: #fff;
@@ -329,6 +323,7 @@ html[xmlns] .clearfix {
   float: left;
   padding: 0 5px 5px 0;
 }
+/* Comments */
 .comment {
   position: relative;
   padding: 10px;
@@ -369,4 +364,28 @@ html[xmlns] .clearfix {
 .comment-meta img {
   float: right;
   margin-left: 5px;
+}
+.load-comments {
+  background: #eee;
+  background-color: #a7a7a7;
+  background-repeat: repeat-x;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #cacaca), color-stop(100%, #a7a7a7));
+  background-image: -webkit-linear-gradient(top, #cacaca, #a7a7a7);
+  padding: 15px;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  margin: 0 auto;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  font-family: 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 14px;
+  color: #333;
+  padding-top: 15px;
+}
+.load-comments:active {
+  background-color: #cacaca;
+  background-repeat: repeat-x;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #a7a7a7), color-stop(100%, #cacaca));
+  background-image: -webkit-linear-gradient(top, #a7a7a7, #cacaca);
 }

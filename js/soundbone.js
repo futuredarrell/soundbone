@@ -1,5 +1,3 @@
-// TestCloud
-// When ready...
 (function () {
 
     var soundbone, Tracks, Track, Controls, TrackView, Scrubber, App, app, Router, Screen,

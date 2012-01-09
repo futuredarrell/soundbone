@@ -4,6 +4,8 @@
 
 This is a single-page application running on backbone, backbone-localStorage adapter, zepto and the soundcloud js sdk.  This is a very early prototype of this concept and as such forking at this time is not recommended.  Feel free once I actually add a version number down the road :)
 
+Demo here: http://futuredarrell.github.com/soundbone/
+
 ## Features
 
 - Transitions between tracks from track to track or stream to track
@@ -12,9 +14,9 @@ This is a single-page application running on backbone, backbone-localStorage ada
 
 ## Caveats
 
+- Behavior of track scrubbing is slightly erratic because soundmanager in html5 often returns a null for the stream duration property. If this is happening when you try to scrub the track marker will just return to the current position.  Refresh the page and try again.
 - It has only really been tested on the iOS Simulator, an iPhone 4 running iOS 5, and an iPad running iOS 5.
 - It has been tested a bit in the latest version of Android in the Android emulator, but the emulator is slow to the point of being unuseable.
-- Behavior of track scrubbing is slightly erratic after refreshing scrubbing, switch to another track and the scrubbing again.
 - The webkit transitions can get slightly out of sync.  In the future we could use the same setTimeout that updates the time to readjust the track position marker
 - There are definitely some better patterns to put in use regarding views and subviews, but those can be implemented later
 

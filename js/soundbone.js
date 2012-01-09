@@ -185,7 +185,7 @@
             }
         },
         play: function(){
-            //console.log('track play:', this, this.collection.currentTrack);
+            console.log('track play:', this, this.collection.currentTrack);
             var col = this.collection;
             if(col.currentTrack) col.currentTrack.destruct();
             col.currentTrack = this;
@@ -194,7 +194,7 @@
             this.set({'selected' : true});
         },
         pause: function(){
-            //console.log('track pause:', this);
+            console.log('track pause:', this);
             this.stream.togglePause();
         },
         load: function(){
@@ -336,6 +336,7 @@
                     this.updateControl();
                 break;
                 default:
+                    this.status = 'playing';
                     track.play();
                     this.updateControl();
                 break;
@@ -433,17 +434,18 @@
             var self = this;
             var track = this.model;
             $(this.el).html(self.template(track.toJSON()));
-            $(this.el).bind('touchstart', function(e){
+            
+            self.el.addEventListener('touchstart', function(e){
                e.preventDefault();
                self.pause();
             });
-            $(this.el).bind('touchmove', function(e){
+            self.el.addEventListener('touchmove', function(e){
                e.preventDefault();
                self.$('.scrubber-knob').css({
                    '-webkit-transform': 'translate3d(' + e.touches[0].clientX + 'px,0,0)'
                });
             });
-            $(this.el).bind('touchend', function(e){
+            self.el.addEventListener('touchend', function(e){
                 // touchend has changedtouches on iphone
                 // on android it may be different
                 var pos = e.changedTouches[0].clientX;
@@ -452,10 +454,17 @@
                 var newPos = Math.round((pos * duration) / width);
 
                 e.preventDefault();
-
-                self.model.stream.setPosition(newPos);
+                var stream = app.tracks.currentTrack.stream;
+                
+                // not sure why but there are times when stream.duration
+                // is null. maybe a bug in soundmanager2 or some way 
+                // im handling the stream?
+                if(stream.duration && newPos < stream.duration) {
+                    stream.setPosition(newPos);
+                }
                 self.position();
             });
+
             return this;
         },
         template: Templates.Scrubber
@@ -605,6 +614,7 @@
             };
 
             // decide if autoplay or not
+            console.log(app.settings.autoplay, this.model);
             if(app.settings.autoplay) this.model.play();
             return this;
         },
